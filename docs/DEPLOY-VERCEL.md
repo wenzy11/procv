@@ -99,11 +99,25 @@ Env ekledikten sonra: **Deployments → son deploy → Redeploy**.
 - `procv-xxx.vercel.app` (Vercel’in verdiği domain)
 - Özel domain varsa: `app.senindomain.com`
 
-### Google Sign-In
+### Google Sign-In (sık sorun: “kapalı” / disabled buton)
 
-**Authentication → Sign-in method → Google** açık olmalı.
+1. **Authentication → Sign-in method → Google** → **Enable** → Support email seç → Kaydet.
+2. **Authentication → Settings → Authorized domains** → ekle:
+   - `localhost` (yerel test)
+   - `senin-proje.vercel.app`
+   - Varsa özel domain
+3. **Google Cloud Console** (Firebase projenle bağlı):
+   - [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → **Credentials**
+   - **Web client (auto created by Google Service)** düzenle
+   - **Authorized JavaScript origins:**
+     - `http://localhost:3000`
+     - `https://senin-proje.vercel.app`
+   - **Authorized redirect URIs** (Firebase handler):
+     - `https://SENIN-PROJECT-ID.firebaseapp.com/__/auth/handler`
+4. **Vercel env:** Tüm `NEXT_PUBLIC_FIREBASE_*` değişkenleri Production’da dolu olmalı. Eksikse Google butonu **gri (disabled)** kalır.
+5. Deploy sonrası **Redeploy** (env değiştiyse).
 
-OAuth redirect için authorized domain yeterli; ek redirect URI gerekmez (Firebase popup kullanıyoruz).
+Uygulama popup engellenirse otomatik **redirect** ile Google’a yönlendirir.
 
 ### Firestore rules
 

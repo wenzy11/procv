@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { signInWithGoogle, signUpWithEmail } from "@/lib/firebase/auth";
+import { handleGoogleAuthError } from "@/components/auth/use-google-redirect";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -57,9 +58,7 @@ export function SignUpForm() {
       await signInWithGoogle(locale);
       router.replace("/dashboard");
     } catch (err) {
-      toast.error(t("common.error"), {
-        description: err instanceof Error ? err.message : undefined,
-      });
+      handleGoogleAuthError(err, t);
     } finally {
       setBusy("none");
     }
@@ -78,6 +77,11 @@ export function SignUpForm() {
       >
         {t("auth.continueWithGoogle")}
       </Button>
+      {!configured ? (
+        <p className="text-center text-xs text-state-warn">
+          {t("auth.firebaseEnvMissing")}
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-3 py-1 text-2xs uppercase tracking-[0.18em] text-ink-tertiary">
         <Separator className="flex-1" />

@@ -33,6 +33,17 @@ export const tr: Dictionary = {
     tagline:
       "CV'leri gerçek zamanlı bir AI yardımcısıyla oluştur, puanla ve uyarla.",
     poweredBy: "Firebase ile şifrelenir. OpenAI ile güçlendirilir.",
+    googleDisabled:
+      "Google girişi Firebase'de kapalı. Authentication → Sign-in method → Google'ı etkinleştir.",
+    unauthorizedDomain:
+      "Bu alan adı yetkili değil. Authentication → Settings → Authorized domains'e Vercel adresini ekle.",
+    popupBlocked: "Giriş penceresi engellendi. Google'a yönlendiriliyorsun…",
+    popupClosed: "Giriş iptal edildi. Tekrar dene.",
+    accountExistsDifferent:
+      "Bu e-posta başka bir yöntemle kayıtlı. E-posta/parola ile giriş yap.",
+    firebaseEnvMissing:
+      "Firebase ortam değişkenleri eksik (Vercel → Environment Variables → NEXT_PUBLIC_FIREBASE_*).",
+    googleFinishing: "Google ile giriş tamamlanıyor…",
   },
   nav: {
     dashboard: "Panel",

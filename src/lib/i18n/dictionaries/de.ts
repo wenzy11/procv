@@ -31,6 +31,17 @@ export const de: Dictionary = {
     tagline:
       "Erstelle, bewerte und passe Lebensläufe mit einem KI-Co-Piloten in Echtzeit an.",
     poweredBy: "Verschlüsselt durch Firebase. Angetrieben von OpenAI.",
+    googleDisabled:
+      "Google-Anmeldung ist in Firebase deaktiviert. Unter Authentication → Sign-in method aktivieren.",
+    unauthorizedDomain:
+      "Diese Domain ist nicht autorisiert. Vercel-URL unter Authorized domains hinzufügen.",
+    popupBlocked: "Popup blockiert. Weiterleitung zu Google…",
+    popupClosed: "Anmeldung abgebrochen. Erneut versuchen.",
+    accountExistsDifferent:
+      "Diese E-Mail ist mit einer anderen Methode registriert. E-Mail/Passwort nutzen.",
+    firebaseEnvMissing:
+      "NEXT_PUBLIC_FIREBASE_* fehlen in Vercel Environment Variables.",
+    googleFinishing: "Google-Anmeldung wird abgeschlossen…",
   },
   nav: {
     dashboard: "Dashboard",

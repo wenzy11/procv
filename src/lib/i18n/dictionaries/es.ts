@@ -31,6 +31,17 @@ export const es: Dictionary = {
     tagline:
       "Crea, puntúa y adapta currículums con un copiloto de IA en vivo.",
     poweredBy: "Cifrado por Firebase. Impulsado por OpenAI.",
+    googleDisabled:
+      "El inicio con Google está desactivado en Firebase. Actívalo en Authentication → Sign-in method → Google.",
+    unauthorizedDomain:
+      "Este dominio no está autorizado. Añade tu URL de Vercel en Authorized domains.",
+    popupBlocked: "Ventana bloqueada. Redirigiendo a Google…",
+    popupClosed: "Inicio cancelado. Inténtalo de nuevo.",
+    accountExistsDifferent:
+      "Este correo ya está registrado con otro método. Usa correo/contraseña.",
+    firebaseEnvMissing:
+      "Faltan variables NEXT_PUBLIC_FIREBASE_* en Vercel.",
+    googleFinishing: "Completando inicio con Google…",
   },
   nav: {
     dashboard: "Panel",

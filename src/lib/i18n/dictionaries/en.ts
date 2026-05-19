@@ -39,6 +39,18 @@ export const en = {
     tagline:
       "Build, score, and tailor résumés with a real-time AI co-pilot.",
     poweredBy: "Encrypted by Firebase. Powered by OpenAI.",
+    googleDisabled:
+      "Google sign-in is disabled in Firebase. Enable it under Authentication → Sign-in method → Google.",
+    unauthorizedDomain:
+      "This domain is not authorized. Add your Vercel URL under Authentication → Settings → Authorized domains.",
+    popupBlocked:
+      "The sign-in popup was blocked. Redirecting to Google…",
+    popupClosed: "Sign-in was cancelled. Try again.",
+    accountExistsDifferent:
+      "This email is already registered with another sign-in method. Use email/password instead.",
+    firebaseEnvMissing:
+      "Firebase env vars are missing on the server (Vercel → Environment Variables → NEXT_PUBLIC_FIREBASE_*).",
+    googleFinishing: "Completing Google sign-in…",
   },
   nav: {
     dashboard: "Dashboard",

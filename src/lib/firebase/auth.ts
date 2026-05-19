@@ -7,7 +7,9 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  getRedirectResult,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   updateProfile,
   type User as FirebaseUser,
@@ -135,11 +137,66 @@ export async function signInWithEmail(
   return toAppUser(cred.user);
 }
 
+const AUTH_LOCALE_KEY = "procv_auth_locale";
+
+/** Persist locale across Google redirect sign-in. */
+export function stashAuthLocale(locale: string): void {
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem(AUTH_LOCALE_KEY, locale);
+  }
+}
+
+function takeAuthLocale(fallback: string): string {
+  if (typeof window === "undefined") return fallback;
+  const v = sessionStorage.getItem(AUTH_LOCALE_KEY);
+  if (v) sessionStorage.removeItem(AUTH_LOCALE_KEY);
+  return v ?? fallback;
+}
+
+/** Thrown when `signInWithRedirect` navigates away (not a real failure). */
+export class GoogleRedirectPendingError extends Error {
+  constructor() {
+    super("GOOGLE_REDIRECT_PENDING");
+    this.name = "GoogleRedirectPendingError";
+  }
+}
+
 export async function signInWithGoogle(locale: string): Promise<AppUser> {
+  const auth = getFirebaseAuth();
   const provider = new GoogleAuthProvider();
-  const cred = await signInWithPopup(getFirebaseAuth(), provider);
-  await ensureUserProfile(cred.user, locale);
-  return toAppUser(cred.user);
+  stashAuthLocale(locale);
+
+  try {
+    const cred = await signInWithPopup(auth, provider);
+    await ensureUserProfile(cred.user, locale);
+    return toAppUser(cred.user);
+  } catch (err) {
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? String((err as { code: string }).code)
+        : "";
+
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/popup-closed-by-user" ||
+      code === "auth/cancelled-popup-request"
+    ) {
+      await signInWithRedirect(auth, provider);
+      throw new GoogleRedirectPendingError();
+    }
+    throw err;
+  }
+}
+
+/** Call on /sign-in and /sign-up after Google redirect. */
+export async function completeGoogleRedirectSignIn(
+  fallbackLocale: string,
+): Promise<AppUser | null> {
+  const result = await getRedirectResult(getFirebaseAuth());
+  if (!result?.user) return null;
+  const locale = takeAuthLocale(fallbackLocale);
+  await ensureUserProfile(result.user, locale);
+  return toAppUser(result.user);
 }
 
 export async function signOutUser(): Promise<void> {
