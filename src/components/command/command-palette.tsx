@@ -89,6 +89,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               <CommandItem icon={FileText} onSelect={() => go("/editor")}>
                 {t("nav.cvs")}
               </CommandItem>
+              <CommandItem icon={Briefcase} onSelect={() => go("/applications")}>
+                {t("nav.applications")}
+              </CommandItem>
               <CommandItem icon={Briefcase} onSelect={() => go("/job-matching")}>
                 {t("nav.jobMatching")}
               </CommandItem>

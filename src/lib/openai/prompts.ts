@@ -170,3 +170,44 @@ Rules for the keyword arrays:
     },
   ];
 }
+
+// ---------- COVER LETTER ------------------------------------------------------
+
+export function coverLetterMessages(
+  resume: ResumeDocument,
+  jobDescription: string,
+  locale: string,
+  options?: { company?: string; role?: string; tone?: string },
+): Array<{ role: "system" | "user"; content: string }> {
+  const lang = languageOf(locale);
+  const company = options?.company?.trim() || "the company";
+  const role = options?.role?.trim() || "the role";
+  const tone = options?.tone?.trim() || "professional and confident";
+
+  return [
+    {
+      role: "system",
+      content: `You write tailored cover letters for tech and knowledge-work roles.
+The letter must:
+- Be 3–4 short paragraphs, under 380 words total.
+- Open with a specific hook tied to ${company} and ${role} (no "To whom it may concern").
+- Mirror 2–3 keywords from the job description naturally (do not keyword-stuff).
+- Highlight 2 concrete achievements from the résumé with metrics where present.
+- Close with a clear call to action.
+- Tone: ${tone}.
+
+${LANGUAGE_RULE(lang)}
+
+Return strict JSON: { "letter": "<full cover letter body in ${lang}, plain text, paragraphs separated by blank lines>" }.
+No markdown, no subject line, no signature block placeholders.`,
+    },
+    {
+      role: "user",
+      content: `Write a cover letter in ${lang} for ${role} at ${company}.\n\n=== RÉSUMÉ ===\n${JSON.stringify(
+        resume,
+        null,
+        2,
+      )}\n\n=== JOB DESCRIPTION ===\n${jobDescription}`,
+    },
+  ];
+}

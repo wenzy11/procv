@@ -160,6 +160,38 @@ export interface KeywordMatchResult {
 }
 
 /* -------------------------------------------------------------------------
+ * Job applications (Teal-style tracker)
+ * --------------------------------------------------------------------- */
+
+export type ApplicationStatus =
+  | "saved"
+  | "applied"
+  | "interview"
+  | "offer"
+  | "rejected";
+
+export interface JobApplication {
+  id: ID;
+  company: string;
+  role: string;
+  location?: string;
+  url?: string;
+  status: ApplicationStatus;
+  /** Linked résumé used for this application. */
+  resumeId?: string;
+  resumeTitle?: string;
+  jobDescription?: string;
+  /** Last JD match strength (0–100). */
+  matchStrength?: number;
+  coverLetter?: string;
+  notes?: string;
+  /** ISO date when marked applied. */
+  appliedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/* -------------------------------------------------------------------------
  * Editor / UX state
  * --------------------------------------------------------------------- */
 

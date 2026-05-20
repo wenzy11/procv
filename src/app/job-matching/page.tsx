@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/layout/app-shell";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { JobMatchPanel } from "@/components/ats/job-match-panel";
+import { CoverLetterPanel } from "@/components/ats/cover-letter-panel";
 import { ATSPanel } from "@/components/ats/ats-panel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -148,8 +149,11 @@ function Body() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(360px,440px)]">
-        <JobMatchPanel />
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,400px)]">
+        <div className="space-y-4">
+          <JobMatchPanel />
+          <CoverLetterPanel />
+        </div>
         <ATSPanel />
       </div>
     </div>

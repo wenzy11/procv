@@ -12,6 +12,7 @@ import {
   FileText,
   LayoutDashboard,
   Layers,
+  Target,
   LogOut,
   Search,
   Settings,
@@ -44,7 +45,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", i18nKey: "nav.dashboard", icon: LayoutDashboard },
   { href: "/editor", i18nKey: "nav.cvs", icon: FileText },
-  { href: "/job-matching", i18nKey: "nav.jobMatching", icon: Briefcase },
+  { href: "/applications", i18nKey: "nav.applications", icon: Briefcase },
+  { href: "/job-matching", i18nKey: "nav.jobMatching", icon: Target },
   { href: "/analytics", i18nKey: "nav.analytics", icon: BarChart3 },
 ];
 

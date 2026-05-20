@@ -29,6 +29,11 @@ import { contactQuickFixPatch } from "@/lib/ats/contact-quick-fix";
 import { useEntitlements } from "@/components/billing/use-entitlements";
 import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { getCachedAtsAnalysis } from "@/lib/ats/cached-analysis";
+import {
+  breakdownMood,
+  BREAKDOWN_TIP_KEYS,
+  type BreakdownKey,
+} from "@/lib/ats/breakdown-insights";
 import { hashResumeContent } from "@/lib/ats/resume-content-hash";
 import { analyzeResume } from "@/lib/scoring";
 import { ATSGauge } from "./ats-gauge";
@@ -38,7 +43,7 @@ import type {
   EditorSection,
 } from "@/lib/types";
 
-const BREAKDOWN_KEYS: Array<keyof ATSScore["breakdown"]> = [
+const BREAKDOWN_KEYS: BreakdownKey[] = [
   "keywordCoverage",
   "formatting",
   "impactLanguage",
@@ -225,6 +230,12 @@ export function ATSPanel() {
                   <BreakdownRow
                     key={key}
                     label={t(`ats.breakdown.${key}`)}
+                    tip={t(BREAKDOWN_TIP_KEYS[key])}
+                    mood={
+                      score
+                        ? t(`ats.mood.${breakdownMood(score.breakdown[key])}`)
+                        : undefined
+                    }
                     value={score?.breakdown[key] ?? 0}
                     loading={loading || !score}
                   />
@@ -288,10 +299,14 @@ function EmptyState() {
 
 function BreakdownRow({
   label,
+  tip,
+  mood,
   value,
   loading,
 }: {
   label: string;
+  tip: string;
+  mood?: string;
   value: number;
   loading?: boolean;
 }) {
@@ -305,14 +320,19 @@ function BreakdownRow({
           : "from-rose-400 to-rose-500";
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1.5 rounded-md border border-white/[0.04] bg-white/[0.02] px-2.5 py-2">
       <div className="flex items-center justify-between text-xs">
         <span className="text-ink-secondary">{label}</span>
         {loading ? (
-          <Skeleton className="h-3 w-7" />
+          <Skeleton className="h-3 w-12" />
         ) : (
-          <span className="font-medium tabular-nums text-ink-primary">
-            {value}
+          <span className="flex items-center gap-2">
+            {mood ? (
+              <span className="text-2xs text-ink-tertiary">{mood}</span>
+            ) : null}
+            <span className="font-medium tabular-nums text-ink-primary">
+              {value}
+            </span>
           </span>
         )}
       </div>
@@ -329,6 +349,9 @@ function BreakdownRow({
           />
         ) : null}
       </div>
+      {!loading ? (
+        <p className="text-2xs leading-relaxed text-ink-tertiary">{tip}</p>
+      ) : null}
     </div>
   );
 }

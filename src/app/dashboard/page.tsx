@@ -9,6 +9,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { PlanUsageBanner } from "@/components/billing/plan-usage-banner";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { ResumeList } from "@/components/dashboard/resume-list";
+import { ApplicationsPreview } from "@/components/dashboard/applications-preview";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -33,6 +34,9 @@ function DashboardBody() {
       </div>
       <div className="mt-6">
         <StatsGrid />
+      </div>
+      <div className="mt-6">
+        <ApplicationsPreview />
       </div>
       <div className="mt-6">
         <ResumeList />
@@ -86,6 +90,9 @@ function HeroBanner() {
             </Link>
           </Button>
           <Button asChild variant="secondary" size="lg">
+            <Link href="/applications">{t("nav.applications")}</Link>
+          </Button>
+          <Button asChild variant="ghost" size="lg">
             <Link href="/job-matching">{t("dashboard.matchJD")}</Link>
           </Button>
         </div>

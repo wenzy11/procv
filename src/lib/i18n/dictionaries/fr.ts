@@ -46,6 +46,7 @@ export const fr: Dictionary = {
   nav: {
     dashboard: "Tableau de bord",
     cvs: "Mes CV",
+    applications: "Candidatures",
     jobMatching: "Matching d'offres",
     analytics: "Analytics",
     search: "Rechercher…",
@@ -462,6 +463,18 @@ export const fr: Dictionary = {
     needsContentHint:
       "Remplissez au moins une section pour pouvoir scorer.",
     failed: "Échec de la requête IA",
+    breakdownTips: {
+      keywordCoverage:
+        "Les ATS cherchent les compétences de l'offre. Reprends les termes techniques dans tes compétences et expériences.",
+      formatting:
+        "Ajoute e-mail, téléphone et lieu ; dates cohérentes (AAAA-MM) ; sections dans l'ordre attendu.",
+      impactLanguage:
+        "Commence par des verbes forts et quantifie les résultats. Évite les formulations passives.",
+      completeness:
+        "Remplis résumé, expérience, compétences et formation. Les sections vides font baisser le score.",
+      readability:
+        "Puces courtes, peu de blocs de texte, jargon limité — lisible pour ATS et recruteurs.",
+    },
   },
   match: {
     title: "Matching d'offre",
@@ -494,6 +507,58 @@ export const fr: Dictionary = {
     successToast: "Score de matching · {value}%",
     aligned: "Tous les termes clés détectés. Vous êtes aligné.",
     consider: "Envisagez d'ajouter : {keywords}",
+    copyMissing: "Copier les mots-clés manquants",
+    export: "Télécharger le rapport",
+    exportTitle: "ProCV — Rapport de correspondance",
+    exported: "Rapport téléchargé",
+    copiedMissing: "Mots-clés manquants copiés",
+    trackJob: "Enregistrer dans le suivi",
+  },
+  coverLetter: {
+    title: "Lettre de motivation IA",
+    hint: "Adaptée à ton CV et à l'offre collée. Relis avant d'envoyer.",
+    generate: "Générer la lettre",
+    regenerate: "Régénérer",
+    copy: "Copier la lettre",
+    copied: "Lettre copiée",
+    ready: "Lettre prête",
+    empty: "Colle une offre puis génère ta lettre personnalisée.",
+    needJd: "Colle d'abord une offre d'emploi",
+  },
+  applications: {
+    title: "Suivi des candidatures",
+    subtitle:
+      "Comme Teal : chaque poste de « enregistré » à « offre ». CV, scores et notes au même endroit.",
+    previewTitle: "Candidatures actives",
+    previewEmpty: "Aucune candidature en cours.",
+    addFirst: "Ajouter une première candidature",
+    viewAll: "Voir le tableau",
+    addNew: "Nouvelle candidature",
+    add: "Ajouter",
+    company: "Entreprise",
+    role: "Poste",
+    companyPlaceholder: "ex. Acme SAS",
+    rolePlaceholder: "ex. Ingénieur Frontend Senior",
+    needFields: "Saisis entreprise et poste",
+    created: "Candidature ajoutée",
+    deleted: "Candidature supprimée",
+    savedToTracker: "Enregistrée dans le suivi",
+    columnEmpty: "Change le statut pour déplacer les cartes",
+    matchBadge: "{value}% de match",
+    notes: "Notes",
+    notesPlaceholder: "Date d'entretien, recruteur, relances…",
+    noResume: "Aucun CV lié",
+    openCv: "Ouvrir le CV",
+    runMatch: "Lancer le matching",
+    viewPosting: "Voir l'offre",
+    moveTo: "Déplacer vers {status}",
+    status: {
+      saved: "Enregistré",
+      applied: "Postulé",
+      interview: "Entretien",
+      offer: "Offre",
+      rejected: "Refusé",
+    },
   },
   analytics: {
     title: "Analytics",

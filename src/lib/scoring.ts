@@ -69,3 +69,16 @@ export async function matchJobDescription(
 ): Promise<KeywordMatchResult> {
   return authedFetch("/api/ai/match", { resume, jobDescription, locale });
 }
+
+export async function generateCoverLetter(
+  resume: ResumeDocument,
+  jobDescription: string,
+  locale: string,
+  options?: { company?: string; role?: string; tone?: string },
+): Promise<string> {
+  const { letter } = await authedFetch<{ letter: string }>(
+    "/api/ai/cover-letter",
+    { resume, jobDescription, locale, ...options },
+  );
+  return letter;
+}

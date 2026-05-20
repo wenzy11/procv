@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { FileSearch, Target } from "lucide-react";
+import { ClipboardCopy, Download, FileSearch, FolderPlus, Target } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -29,10 +29,22 @@ import { useResumeStore } from "@/store/resume-store";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { useEntitlements } from "@/components/billing/use-entitlements";
 import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
+import { useAuth } from "@/components/providers/auth-provider";
 import { matchJobDescription } from "@/lib/scoring";
+import { createApplication } from "@/lib/firebase/applications";
+import {
+  downloadTextFile,
+  formatKeywordReport,
+} from "@/lib/match/keyword-export";
 import { cn } from "@/lib/cn";
 import { translateMatchCategory } from "@/lib/i18n/match-category";
 import type { KeywordMatchResult } from "@/lib/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 /**
  * Job-description matching widget. Calls `/api/ai/match` with the current
@@ -42,6 +54,7 @@ import type { KeywordMatchResult } from "@/lib/types";
 export function JobMatchPanel() {
   const t = useT();
   const { locale } = useI18n();
+  const { user } = useAuth();
   const resume = useResumeStore((s) => s.resume);
   const jd = useResumeStore((s) => s.jobDescription);
   const setJD = useResumeStore((s) => s.setJobDescription);
@@ -50,6 +63,10 @@ export function JobMatchPanel() {
   const { prompt } = useUpgradePrompt();
   const [result, setResult] = React.useState<KeywordMatchResult | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [trackOpen, setTrackOpen] = React.useState(false);
+  const [trackCompany, setTrackCompany] = React.useState("");
+  const [trackRole, setTrackRole] = React.useState("");
+  const [tracking, setTracking] = React.useState(false);
 
   const hasJD = jd.trim().length > 24;
   const locked = !canUse("job_match");
@@ -87,6 +104,55 @@ export function JobMatchPanel() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const exportReport = () => {
+    if (!result) return;
+    const text = formatKeywordReport(result, {
+      title: t("match.exportTitle"),
+      strength: t("match.strength"),
+      matched: t("match.matching"),
+      missing: t("match.missing"),
+      none: t("match.none"),
+    });
+    downloadTextFile("procv-keyword-match.txt", text);
+    toast.success(t("match.exported"));
+  };
+
+  const copyMissing = async () => {
+    if (!result?.missing.length) return;
+    await navigator.clipboard.writeText(result.missing.join(", "));
+    toast.success(t("match.copiedMissing"));
+  };
+
+  const saveToTracker = async () => {
+    if (!user || !result) return;
+    if (!trackCompany.trim() || !trackRole.trim()) {
+      toast.warning(t("applications.needFields"));
+      return;
+    }
+    setTracking(true);
+    try {
+      await createApplication(user.uid, {
+        company: trackCompany,
+        role: trackRole,
+        jobDescription: jd,
+        matchStrength: result.strength,
+        resumeId: resume?.id,
+        resumeTitle: resume?.title,
+        status: "saved",
+      });
+      setTrackOpen(false);
+      setTrackCompany("");
+      setTrackRole("");
+      toast.success(t("applications.savedToTracker"));
+    } catch (err) {
+      toast.error(t("common.error"), {
+        description: err instanceof Error ? err.message : undefined,
+      });
+    } finally {
+      setTracking(false);
     }
   };
 
@@ -171,6 +237,26 @@ export function JobMatchPanel() {
             >
               <StrengthBar strength={result.strength} />
 
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" onClick={() => void copyMissing()}>
+                  <ClipboardCopy className="h-3.5 w-3.5" />
+                  {t("match.copyMissing")}
+                </Button>
+                <Button variant="secondary" size="sm" onClick={exportReport}>
+                  <Download className="h-3.5 w-3.5" />
+                  {t("match.export")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTrackOpen(true)}
+                  disabled={!user}
+                >
+                  <FolderPlus className="h-3.5 w-3.5" />
+                  {t("match.trackJob")}
+                </Button>
+              </div>
+
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <KeywordList
                   title={t("match.matching")}
@@ -201,6 +287,36 @@ export function JobMatchPanel() {
           )}
         </AnimatePresence>
       </CardContent>
+
+      <Dialog open={trackOpen} onOpenChange={setTrackOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <h2 className="text-sm font-semibold text-ink-primary">
+              {t("match.trackJob")}
+            </h2>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={trackCompany}
+              onChange={(e) => setTrackCompany(e.target.value)}
+              placeholder={t("applications.companyPlaceholder")}
+            />
+            <Input
+              value={trackRole}
+              onChange={(e) => setTrackRole(e.target.value)}
+              placeholder={t("applications.rolePlaceholder")}
+            />
+            <Button
+              variant="neon"
+              className="w-full"
+              loading={tracking}
+              onClick={() => void saveToTracker()}
+            >
+              {t("applications.add")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
