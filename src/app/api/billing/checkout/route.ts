@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireUser, serverError } from "@/app/api/_lib/guard";
+import { updateUserBilling } from "@/lib/firebase/billing-admin";
 import {
   createPolarCheckout,
   isPolarConfigured,
@@ -45,13 +46,29 @@ export async function POST(req: Request) {
 
   try {
     if (isPolarConfigured()) {
-      const url = await createPolarCheckout({
-        userId: guard.uid,
-        email,
-        successUrl: redirectUrl,
-        locale,
-      });
-      return NextResponse.json({ url });
+      try {
+        const url = await createPolarCheckout({
+          userId: guard.uid,
+          email,
+          successUrl: redirectUrl,
+          locale,
+        });
+        return NextResponse.json({ url });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "";
+        const alreadySubscribed =
+          /already.*subscrib/i.test(message) ||
+          /already.*active/i.test(message);
+        if (alreadySubscribed) {
+          // If Polar says user is already subscribed, keep local plan in sync.
+          await updateUserBilling(guard.uid, {
+            plan: "pro",
+            subscriptionStatus: "active",
+          });
+          return NextResponse.json({ url: redirectUrl });
+        }
+        throw err;
+      }
     }
 
     if (isGumroadConfigured()) {
