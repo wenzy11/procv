@@ -5,7 +5,10 @@ import { subscribeWithSelector } from "zustand/middleware";
 
 import { uid } from "@/lib/id";
 import { patchResume } from "@/lib/firebase/resumes";
+import { hashResumeContent } from "@/lib/ats/resume-content-hash";
 import type {
+  AISuggestion,
+  ATSScore,
   EditorSection,
   Language,
   Project,
@@ -61,6 +64,11 @@ interface ResumeStoreActions {
   setTitle: (title: string) => void;
   setTemplateId: (templateId: ResumeTemplateId) => void;
   setAtsScore: (total: number) => void;
+  setAtsAnalysisResult: (
+    score: ATSScore,
+    suggestions: AISuggestion[],
+    locale: string,
+  ) => void;
 
   updatePersonal: (patch: Partial<ResumeDocument["personal"]>) => void;
   setSummary: (text: string) => void;
@@ -165,6 +173,24 @@ export const useResumeStore = create<Store>()(
                 ...state.resume,
                 lastAtsScore: total,
                 lastAtsScoredAt: new Date().toISOString(),
+              }),
+              dirty: true,
+            }
+          : state,
+      ),
+
+    setAtsAnalysisResult: (score, suggestions, locale) =>
+      set((state) =>
+        state.resume
+          ? {
+              resume: touch({
+                ...state.resume,
+                lastAtsScore: score.total,
+                lastAtsBreakdown: score.breakdown,
+                lastAtsSuggestions: suggestions,
+                lastAtsScoredAt: new Date().toISOString(),
+                atsContentHash: hashResumeContent(state.resume),
+                atsScoredLocale: locale,
               }),
               dirty: true,
             }

@@ -28,6 +28,8 @@ import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { contactQuickFixPatch } from "@/lib/ats/contact-quick-fix";
 import { useEntitlements } from "@/components/billing/use-entitlements";
 import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
+import { getCachedAtsAnalysis } from "@/lib/ats/cached-analysis";
+import { hashResumeContent } from "@/lib/ats/resume-content-hash";
 import { analyzeResume } from "@/lib/scoring";
 import { ATSGauge } from "./ats-gauge";
 import type {
@@ -70,15 +72,17 @@ export function ATSPanel() {
 
   const resume = useResumeStore((s) => s.resume);
   const setActiveSection = useResumeStore((s) => s.setActiveSection);
-  const setAtsScore = useResumeStore((s) => s.setAtsScore);
+  const setAtsAnalysisResult = useResumeStore((s) => s.setAtsAnalysisResult);
   const { canUse, atsRemaining, refreshUsage } = useEntitlements();
   const { prompt } = useUpgradePrompt();
 
   const [score, setScore] = React.useState<ATSScore | null>(null);
   const [suggestions, setSuggestions] = React.useState<AISuggestion[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [stale, setStale] = React.useState(false);
 
   const empty = isResumeEmpty(resume);
+  const contentHash = resume ? hashResumeContent(resume) : "";
 
   const runAnalysis = React.useCallback(async () => {
     if (!resume) return;
@@ -92,7 +96,8 @@ export function ATSPanel() {
       const result = await analyzeResume(resume, locale);
       setScore(result.score);
       setSuggestions(result.suggestions);
-      setAtsScore(result.score.total);
+      setAtsAnalysisResult(result.score, result.suggestions, locale);
+      setStale(false);
       void refreshUsage();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
@@ -114,25 +119,52 @@ export function ATSPanel() {
     } finally {
       setLoading(false);
     }
-  }, [resume, empty, locale, t, setAtsScore, canUse, prompt, refreshUsage]);
+  }, [resume, empty, locale, t, setAtsAnalysisResult, canUse, prompt, refreshUsage]);
 
-  // Auto-run once on first meaningful content. Also re-run when the user
-  // switches locale so the suggestions appear in the new language without
-  // requiring a manual click on "Re-score".
-  const didAutoRun = React.useRef(false);
-  const lastLocale = React.useRef(locale);
+  // Firestore önbelleği: aynı CV + dil → API yok. İlk skor yoksa veya dil değiştiyse analiz.
+  const resumeId = resume?.id;
   React.useEffect(() => {
-    if (!resume || empty) return;
-    if (!didAutoRun.current) {
-      didAutoRun.current = true;
-      void runAnalysis();
+    if (!resume || empty) {
+      setScore(null);
+      setSuggestions([]);
+      setStale(false);
       return;
     }
-    if (lastLocale.current !== locale) {
-      lastLocale.current = locale;
+
+    const cached = getCachedAtsAnalysis(resume, locale);
+    if (cached) {
+      setScore(cached.score);
+      setSuggestions(cached.suggestions);
+      setStale(false);
+      return;
+    }
+
+    const hasStaleScore =
+      typeof resume.lastAtsScore === "number" &&
+      resume.atsContentHash != null &&
+      resume.atsContentHash !== contentHash;
+
+    if (hasStaleScore && resume.lastAtsBreakdown) {
+      setScore({
+        total: resume.lastAtsScore!,
+        breakdown: resume.lastAtsBreakdown,
+      });
+      setSuggestions(resume.lastAtsSuggestions ?? []);
+      setStale(true);
+      return;
+    }
+
+    if (resume.lastAtsScore == null) {
       void runAnalysis();
     }
-  }, [resume, empty, locale, runAnalysis]);
+  }, [resumeId, contentHash, locale, empty, runAnalysis, resume]);
+
+  React.useEffect(() => {
+    if (!resume || empty) return;
+    if (resume.atsScoredLocale && resume.atsScoredLocale !== locale) {
+      void runAnalysis();
+    }
+  }, [locale, resume, empty, runAnalysis]);
 
   return (
     <Card glass className="overflow-hidden">
@@ -148,6 +180,11 @@ export function ATSPanel() {
               <p className="text-2xs text-violet-300/90">
                 {t("upgrade.atsRemaining", { count: atsRemaining })}
               </p>
+            ) : null}
+            {stale ? (
+              <p className="text-2xs text-state-warn">{t("ats.staleHint")}</p>
+            ) : score && !loading ? (
+              <p className="text-2xs text-ink-tertiary">{t("ats.cachedHint")}</p>
             ) : null}
           </div>
           <Button

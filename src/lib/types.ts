@@ -104,6 +104,14 @@ export interface ResumeDocument {
   lastAtsScore?: number;
   /** ISO timestamp of the last ATS analyze run. */
   lastAtsScoredAt?: string;
+  /** Breakdown metrics from last analyze (Firestore). */
+  lastAtsBreakdown?: ATSScore["breakdown"];
+  /** Suggestions from last analyze (Firestore). */
+  lastAtsSuggestions?: AISuggestion[];
+  /** Hash of CV body when last scored — invalidates cache on edit. */
+  atsContentHash?: string;
+  /** UI locale used for last ATS run. */
+  atsScoredLocale?: string;
 }
 
 /* -------------------------------------------------------------------------

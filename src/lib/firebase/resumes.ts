@@ -70,6 +70,30 @@ function fromSnap(snap: QueryDocumentSnapshot<DocumentData>): ResumeDocument {
       typeof data.lastAtsScore === "number" ? data.lastAtsScore : undefined,
     lastAtsScoredAt:
       typeof data.lastAtsScoredAt === "string" ? data.lastAtsScoredAt : undefined,
+    lastAtsBreakdown: sanitizeBreakdown(data.lastAtsBreakdown),
+    lastAtsSuggestions: Array.isArray(data.lastAtsSuggestions)
+      ? (data.lastAtsSuggestions as ResumeDocument["lastAtsSuggestions"])
+      : undefined,
+    atsContentHash:
+      typeof data.atsContentHash === "string" ? data.atsContentHash : undefined,
+    atsScoredLocale:
+      typeof data.atsScoredLocale === "string" ? data.atsScoredLocale : undefined,
+  };
+}
+
+function sanitizeBreakdown(
+  raw: unknown,
+): ResumeDocument["lastAtsBreakdown"] | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const b = raw as Record<string, unknown>;
+  const num = (k: string) =>
+    typeof b[k] === "number" ? Math.round(b[k] as number) : 0;
+  return {
+    keywordCoverage: num("keywordCoverage"),
+    formatting: num("formatting"),
+    impactLanguage: num("impactLanguage"),
+    completeness: num("completeness"),
+    readability: num("readability"),
   };
 }
 

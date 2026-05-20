@@ -444,6 +444,8 @@ export const es: Dictionary = {
     appliedToastHint: "Revisa la sección resaltada.",
     jumpTo: "Ir a la sección",
     severity: { critical: "crítico", warning: "aviso", info: "info" },
+    cachedHint: "Resultado ATS guardado",
+    staleHint: "CV cambió — pulsa «Recalcular»",
     reScoredToast: "Tu CV ha sido recalificado",
     reScoredToastHint: "ProCV refrescó todas las métricas.",
     needsContent: "Añade contenido primero",

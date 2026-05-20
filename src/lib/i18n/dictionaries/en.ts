@@ -451,6 +451,8 @@ export const en = {
       warning: "warning",
       info: "info",
     },
+    cachedHint: "Saved ATS result (from your profile)",
+    staleHint: "Résumé changed — tap Re-score for an updated result",
     reScoredToast: "Re-scored your résumé",
     reScoredToastHint: "ProCV refreshed every metric.",
     needsContent: "Add some content first",

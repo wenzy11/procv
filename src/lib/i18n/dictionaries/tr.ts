@@ -449,6 +449,8 @@ export const tr: Dictionary = {
       warning: "uyarı",
       info: "bilgi",
     },
+    cachedHint: "Kayıtlı ATS sonucu (Firebase)",
+    staleHint: "CV değişti — güncel skor için «Yeniden puanla»",
     reScoredToast: "CV'n yeniden puanlandı",
     reScoredToastHint: "ProCV tüm metrikleri yeniledi.",
     needsContent: "Önce içerik ekle",

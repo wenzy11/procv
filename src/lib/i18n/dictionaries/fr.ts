@@ -454,6 +454,8 @@ export const fr: Dictionary = {
       warning: "avertissement",
       info: "info",
     },
+    cachedHint: "Résultat ATS enregistré",
+    staleHint: "CV modifié — « Recalculer » pour mettre à jour",
     reScoredToast: "CV recalculé",
     reScoredToastHint: "ProCV a rafraîchi toutes les métriques.",
     needsContent: "Ajoutez d'abord du contenu",
