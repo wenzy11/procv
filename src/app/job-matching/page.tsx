@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { AppShell } from "@/components/layout/app-shell";
@@ -17,6 +17,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { toast } from "sonner";
 import { useT } from "@/components/providers/i18n-provider";
 import { useResumeStore } from "@/store/resume-store";
+import { getApplication } from "@/lib/firebase/applications";
 import { listResumes, subscribeToResume } from "@/lib/firebase/resumes";
 import type { ResumeDocument } from "@/lib/types";
 
@@ -33,30 +34,54 @@ export default function JobMatchingPage() {
 function Body() {
   const t = useT();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const hydrate = useResumeStore((s) => s.hydrate);
   const replaceResume = useResumeStore((s) => s.replaceResume);
   const reset = useResumeStore((s) => s.reset);
+  const setJD = useResumeStore((s) => s.setJobDescription);
   const resume = useResumeStore((s) => s.resume);
+
+  const applicationId = searchParams.get("applicationId") ?? undefined;
+  const resumeIdParam = searchParams.get("resumeId") ?? undefined;
+  const companyParam = searchParams.get("company") ?? "";
+  const roleParam = searchParams.get("role") ?? "";
 
   const [resumes, setResumes] = React.useState<ResumeDocument[] | null>(null);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [appCompany, setAppCompany] = React.useState(companyParam);
+  const [appRole, setAppRole] = React.useState(roleParam);
+  const [appLetter, setAppLetter] = React.useState<string | undefined>();
 
-  // Pull the user's résumé list to drive the selector.
   React.useEffect(() => {
     if (!user) return;
     listResumes(user.uid)
       .then((list) => {
         setResumes(list);
-        const first = list[0];
-        if (first) setSelectedId((cur) => cur ?? first.id);
+        const pick =
+          resumeIdParam && list.some((r) => r.id === resumeIdParam)
+            ? resumeIdParam
+            : list[0]?.id;
+        if (pick) setSelectedId((cur) => cur ?? pick);
       })
       .catch(() => setResumes([]));
-  }, [user]);
+  }, [user, resumeIdParam]);
 
-  // Live subscribe to the selected résumé. Same pattern as /editor/[id]:
-  // hydrate on first snapshot, replace on subsequent ones (preserves any
-  // pasted job-description text and other transient UI state).
+  React.useEffect(() => {
+    if (!user || !applicationId) return;
+    getApplication(user.uid, applicationId).then((app) => {
+      if (!app) return;
+      if (app.jobDescription) setJD(app.jobDescription);
+      setAppCompany(app.company);
+      setAppRole(app.role);
+      setAppLetter(app.coverLetter);
+      if (app.resumeId) setSelectedId(app.resumeId);
+      toast.info(t("applications.contextLoaded"), {
+        description: `${app.company} — ${app.role}`,
+      });
+    });
+  }, [user, applicationId, setJD, t]);
+
   React.useEffect(() => {
     if (!user || !selectedId) return;
     let firstLoad = true;
@@ -80,7 +105,7 @@ function Body() {
       unsub();
       reset();
     };
-  }, [user, selectedId, hydrate, replaceResume, reset]);
+  }, [user, selectedId, hydrate, replaceResume, reset, t]);
 
   if (resumes === null) {
     return (
@@ -114,16 +139,21 @@ function Body() {
 
   return (
     <div className="mx-auto max-w-[1600px] px-5 py-6">
-      <header className="mb-5 flex items-end justify-between gap-4">
+      <header className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-2xs font-medium uppercase tracking-[0.14em] text-accent-300">
             ProCV
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            {t("match.title")}
+            {applicationId ? t("applications.matchWorkspace") : t("match.title")}
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-ink-secondary">
-            {t("match.hint")}
+            {applicationId
+              ? t("applications.matchWorkspaceHint", {
+                  company: appCompany,
+                  role: appRole,
+                })
+              : t("match.hint")}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -146,13 +176,23 @@ function Body() {
               {resume.personal.fullName || resume.title}
             </Badge>
           ) : null}
+          {applicationId ? (
+            <Button variant="ghost" size="sm" onClick={() => router.push("/applications")}>
+              {t("applications.viewAll")}
+            </Button>
+          ) : null}
         </div>
       </header>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,400px)]">
         <div className="space-y-4">
-          <JobMatchPanel />
-          <CoverLetterPanel />
+          <JobMatchPanel applicationId={applicationId} />
+          <CoverLetterPanel
+            applicationId={applicationId}
+            company={appCompany}
+            role={appRole}
+            initialLetter={appLetter}
+          />
         </div>
         <ATSPanel />
       </div>

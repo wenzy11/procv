@@ -5,6 +5,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   orderBy,
   query,
@@ -156,4 +157,13 @@ export async function updateApplication(
 
 export async function deleteApplication(uid: string, id: string): Promise<void> {
   await deleteDoc(applicationRef(uid, id));
+}
+
+export async function getApplication(
+  uid: string,
+  id: string,
+): Promise<JobApplication | null> {
+  const snap = await getDoc(applicationRef(uid, id));
+  if (!snap.exists()) return null;
+  return fromSnap(snap as QueryDocumentSnapshot<DocumentData>);
 }

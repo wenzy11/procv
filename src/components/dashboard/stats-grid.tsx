@@ -3,6 +3,7 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import {
+  Briefcase,
   Clock,
   FileText,
   Sparkles,
@@ -13,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
+import { subscribeToApplications } from "@/lib/firebase/applications";
 import { subscribeToResumes } from "@/lib/firebase/resumes";
 import { cn } from "@/lib/cn";
 import { formatRelativeShort } from "@/lib/i18n/format";
@@ -36,6 +38,7 @@ export function StatsGrid() {
   const { user } = useAuth();
   const t = useT();
   const [resumes, setResumes] = React.useState<ResumeDocument[] | null>(null);
+  const [appCount, setAppCount] = React.useState<number | null>(null);
 
   React.useEffect(() => {
     if (!user) return;
@@ -44,7 +47,15 @@ export function StatsGrid() {
       (list) => setResumes(list),
       () => setResumes([]),
     );
-    return () => unsub();
+    const unsubApps = subscribeToApplications(
+      user.uid,
+      (list) => setAppCount(list.length),
+      () => setAppCount(0),
+    );
+    return () => {
+      unsub();
+      unsubApps();
+    };
   }, [user]);
 
   const stats: Stat[] = React.useMemo(() => {
@@ -60,6 +71,12 @@ export function StatsGrid() {
     const lastUpdated = lastIso ? formatRelativeShort(t, lastIso) : "—";
 
     return [
+      {
+        id: "apps",
+        labelKey: "dashboard.stats.applications",
+        value: appCount === null ? "—" : String(appCount),
+        icon: Briefcase,
+      },
       {
         id: "count",
         labelKey: "dashboard.stats.resumes",
@@ -85,12 +102,12 @@ export function StatsGrid() {
         icon: Clock,
       },
     ];
-  }, [resumes, t]);
+  }, [resumes, appCount, t]);
 
-  const loading = resumes === null;
+  const loading = resumes === null || appCount === null;
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
       {stats.map((s, idx) => (
         <motion.div
           key={s.id}

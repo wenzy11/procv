@@ -31,7 +31,7 @@ import { useEntitlements } from "@/components/billing/use-entitlements";
 import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { useAuth } from "@/components/providers/auth-provider";
 import { matchJobDescription } from "@/lib/scoring";
-import { createApplication } from "@/lib/firebase/applications";
+import { createApplication, updateApplication } from "@/lib/firebase/applications";
 import {
   downloadTextFile,
   formatKeywordReport,
@@ -51,13 +51,21 @@ import { Input } from "@/components/ui/input";
  * résumé + pasted JD; renders match strength, keyword chips, and a
  * per-category bar chart.
  */
-export function JobMatchPanel() {
+export function JobMatchPanel({
+  applicationId,
+  onMatchComplete,
+}: {
+  applicationId?: string;
+  onMatchComplete?: (result: KeywordMatchResult) => void;
+} = {}) {
   const t = useT();
   const { locale } = useI18n();
   const { user } = useAuth();
   const resume = useResumeStore((s) => s.resume);
   const jd = useResumeStore((s) => s.jobDescription);
   const setJD = useResumeStore((s) => s.setJobDescription);
+  const addSkill = useResumeStore((s) => s.addSkill);
+  const setActiveSection = useResumeStore((s) => s.setActiveSection);
 
   const { canUse } = useEntitlements();
   const { prompt } = useUpgradePrompt();
@@ -85,6 +93,13 @@ export function JobMatchPanel() {
     try {
       const res = await matchJobDescription(resume, jd, locale);
       setResult(res);
+      onMatchComplete?.(res);
+      if (user && applicationId) {
+        await updateApplication(user.uid, applicationId, {
+          matchStrength: res.strength,
+          jobDescription: jd,
+        });
+      }
       toast.success(t("match.successToast", { value: res.strength }), {
         description:
           res.missing.length === 0
@@ -124,6 +139,19 @@ export function JobMatchPanel() {
     if (!result?.missing.length) return;
     await navigator.clipboard.writeText(result.missing.join(", "));
     toast.success(t("match.copiedMissing"));
+  };
+
+  const addMissingToSkills = () => {
+    if (!result?.missing.length) return;
+    let added = 0;
+    for (const kw of result.missing.slice(0, 8)) {
+      const before = useResumeStore.getState().resume?.skills.length ?? 0;
+      addSkill(kw);
+      const after = useResumeStore.getState().resume?.skills.length ?? 0;
+      if (after > before) added++;
+    }
+    setActiveSection("skills");
+    toast.success(t("match.skillsAdded", { count: added }));
   };
 
   const saveToTracker = async () => {
@@ -238,6 +266,11 @@ export function JobMatchPanel() {
               <StrengthBar strength={result.strength} />
 
               <div className="flex flex-wrap gap-2">
+                {result.missing.length > 0 ? (
+                  <Button variant="neon" size="sm" onClick={addMissingToSkills}>
+                    {t("match.addToSkills")}
+                  </Button>
+                ) : null}
                 <Button variant="secondary" size="sm" onClick={() => void copyMissing()}>
                   <ClipboardCopy className="h-3.5 w-3.5" />
                   {t("match.copyMissing")}

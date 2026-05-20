@@ -10,6 +10,7 @@ import { EditorFrame } from "@/components/editor/editor-frame";
 import { CVPreview } from "@/components/preview/cv-preview";
 import { ATSPanel } from "@/components/ats/ats-panel";
 import { JobMatchPanel } from "@/components/ats/job-match-panel";
+import { CoverLetterPanel } from "@/components/ats/cover-letter-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
@@ -117,6 +118,7 @@ function EditorWorkspace() {
           <div className="flex flex-col gap-4">
             <ATSPanel />
             <JobMatchPanel />
+            <CoverLetterPanel />
           </div>
         </aside>
       </div>
