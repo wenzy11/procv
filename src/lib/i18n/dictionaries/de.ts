@@ -50,6 +50,7 @@ export const de: Dictionary = {
     analytics: "Analysen",
     search: "Suchen…",
     upgrade: "Auf Pro upgraden",
+    upgradePlan: "Plan upgraden",
     profile: "Profil",
     preferences: "Einstellungen",
     language: "Sprache",
@@ -308,6 +309,21 @@ export const de: Dictionary = {
   payment: {
     billingTitle: "Abrechnung & Pläne",
     billingHint: "Zahlungen werden sicher über Polar abgewickelt.",
+    sectionEyebrow: "Pläne",
+    sectionTitle: "Wähle deinen Plan",
+    sectionSubtitle:
+      "Starte kostenlos und upgrade bei Bedarf. Alle Funktionen stehen unten.",
+    currentPlanLabel: "Dein aktueller Plan:",
+    syncingPlan: "Plan wird aktualisiert",
+    footerNote: "Jederzeit kündbar. Zahlungen über Polar.",
+    stayOnFree: "Kostenlos bleiben",
+    ctaUpgrade: "{plan} wählen",
+    planDesc: {
+      free: "Zum Ausprobieren",
+      monthly: "Für aktive Jobsuchende",
+      yearly: "Am beliebtesten",
+      unlimited: "Einmal zahlen, für immer",
+    },
     currentPlan: "Aktueller Plan",
     planFree: "Kostenlos",
     planMonthly: "Monatlich",
@@ -336,10 +352,13 @@ export const de: Dictionary = {
     signInRequired: "Melde dich an, um einen Plan zu wählen.",
     comingSoon: "Upgrade — Zahlung kommt bald.",
     features: {
-      free: "1 Lebenslauf|3 ATS-Scores / Monat|Basis-Vorlage",
-      monthly: "Unbegrenzte CVs|ATS + KI-Polish|Stellen-Match|PDF-Export",
-      yearly: "Alles aus Monatlich|2 Monate gratis|Prioritäts-Support",
-      unlimited: "Lebenslanger Zugang|Einmalzahlung|Alle Pro-Features|Unbegrenzt ATS",
+      free: "1 Lebenslauf|3 ATS-Scores / Monat|Classic-Vorlage|Basis-Editor|Cloud-Sync",
+      monthly:
+        "Unbegrenzte CVs|Unbegrenzt ATS + KI|KI-Text-Polish|Stellen-Match|PDF-Export|Alle Vorlagen",
+      yearly:
+        "Alles aus Monatlich|Jährlich sparen|Prioritäts-Support|Früher Feature-Zugang|Jederzeit kündbar",
+      unlimited:
+        "Lebenslang alles|Einmalzahlung|Kein Abo|Unbegrenzt ATS & KI|Zukünftige Updates inkl.",
     },
   },
   preview: {

@@ -52,6 +52,7 @@ export const tr: Dictionary = {
     analytics: "Analizler",
     search: "Ara…",
     upgrade: "Pro'ya yükselt",
+    upgradePlan: "Plan yükselt",
     profile: "Profil",
     preferences: "Tercihler",
     language: "Dil",
@@ -303,6 +304,21 @@ export const tr: Dictionary = {
   payment: {
     billingTitle: "Abonelik ve planlar",
     billingHint: "Ödemeler Polar üzerinden güvenle işlenir.",
+    sectionEyebrow: "Planlar",
+    sectionTitle: "Sana uygun planı seç",
+    sectionSubtitle:
+      "Ücretsiz başla, ihtiyacın olduğunda yükselt. Tüm planların özellikleri aşağıda.",
+    currentPlanLabel: "Şu anki planın:",
+    syncingPlan: "Planın güncelleniyor",
+    footerNote: "İstediğin zaman iptal edebilirsin. Ödemeler Polar ile güvende.",
+    stayOnFree: "Ücretsiz devam et",
+    ctaUpgrade: "{plan} planına geç",
+    planDesc: {
+      free: "Başlamak ve denemek için",
+      monthly: "Aktif iş arayanlar için",
+      yearly: "En çok tercih edilen",
+      unlimited: "Tek ödeme, ömür boyu",
+    },
     currentPlan: "Mevcut plan",
     planFree: "Ücretsiz",
     planMonthly: "Aylık",
@@ -332,10 +348,13 @@ export const tr: Dictionary = {
     signInRequired: "Plan seçmek için giriş yap.",
     comingSoon: "Yükseltme — ödeme yakında.",
     features: {
-      free: "1 CV|Ayda 3 ATS skoru|Temel şablon",
-      monthly: "Sınırsız CV|ATS + AI polish|İlan eşleştirme|PDF export",
-      yearly: "Aylık plandaki her şey|2 ay bedava|Öncelikli destek",
-      unlimited: "Ömür boyu erişim|Tek ödeme|Tüm Pro özellikler|Sınırsız ATS",
+      free: "1 CV oluşturma|Ayda 3 ATS skoru|1 şablon (Classic)|Temel düzenleme|Kayıt ve senkron",
+      monthly:
+        "Sınırsız CV|Sınırsız ATS + AI önerileri|AI metin cilalama|İlan eşleştirme|PDF dışa aktarma|Tüm şablonlar",
+      yearly:
+        "Aylık plandaki her şey|Yıllık öde, ~2 ay kazan|Öncelikli destek|Erken özellik erişimi|İptal garantisi",
+      unlimited:
+        "Ömür boyu tüm özellikler|Tek seferlik ödeme|Abonelik yok|Sınırsız ATS & AI|Gelecek güncellemeler dahil",
     },
   },
   preview: {

@@ -50,6 +50,7 @@ export const fr: Dictionary = {
     analytics: "Analytics",
     search: "Rechercher…",
     upgrade: "Passer en Pro",
+    upgradePlan: "Changer de forfait",
     profile: "Profil",
     preferences: "Préférences",
     language: "Langue",
@@ -309,6 +310,21 @@ export const fr: Dictionary = {
   payment: {
     billingTitle: "Abonnement et forfaits",
     billingHint: "Paiements sécurisés via Polar.",
+    sectionEyebrow: "Forfaits",
+    sectionTitle: "Choisissez votre forfait",
+    sectionSubtitle:
+      "Commencez gratuitement, passez au niveau supérieur quand vous voulez.",
+    currentPlanLabel: "Forfait actuel :",
+    syncingPlan: "Mise à jour du forfait",
+    footerNote: "Annulation à tout moment. Paiements sécurisés par Polar.",
+    stayOnFree: "Rester sur Gratuit",
+    ctaUpgrade: "Choisir {plan}",
+    planDesc: {
+      free: "Pour découvrir ProCV",
+      monthly: "Pour une recherche active",
+      yearly: "Le plus populaire",
+      unlimited: "Un paiement, à vie",
+    },
     currentPlan: "Forfait actuel",
     planFree: "Gratuit",
     planMonthly: "Mensuel",
@@ -337,10 +353,13 @@ export const fr: Dictionary = {
     signInRequired: "Connectez-vous pour choisir un forfait.",
     comingSoon: "Upgrade — paiement bientôt.",
     features: {
-      free: "1 CV|3 scores ATS / mois|Modèle de base",
-      monthly: "CV illimités|ATS + polish IA|Match offre|Export PDF",
-      yearly: "Tout le Mensuel|2 mois offerts|Support prioritaire",
-      unlimited: "Accès à vie|Paiement unique|Toutes les fonctions Pro|ATS illimité",
+      free: "1 CV|3 scores ATS / mois|Modèle Classic|Édition de base|Sync cloud",
+      monthly:
+        "CV illimités|ATS + conseils IA|Polish IA|Match offre|Export PDF|Tous les modèles",
+      yearly:
+        "Tout le Mensuel|Économisez ~2 mois|Support prioritaire|Accès anticipé|Annulation libre",
+      unlimited:
+        "Accès à vie complet|Paiement unique|Pas d'abonnement|ATS & IA illimités|Mises à jour futures",
     },
   },
   preview: {

@@ -50,6 +50,7 @@ export const es: Dictionary = {
     analytics: "Analíticas",
     search: "Buscar…",
     upgrade: "Actualizar a Pro",
+    upgradePlan: "Mejorar plan",
     profile: "Perfil",
     preferences: "Preferencias",
     language: "Idioma",
@@ -303,6 +304,21 @@ export const es: Dictionary = {
   payment: {
     billingTitle: "Facturación y planes",
     billingHint: "Pagos seguros con Polar.",
+    sectionEyebrow: "Planes",
+    sectionTitle: "Elige el plan que te encaje",
+    sectionSubtitle:
+      "Empieza gratis y mejora cuando lo necesites. Todas las funciones abajo.",
+    currentPlanLabel: "Tu plan actual:",
+    syncingPlan: "Actualizando tu plan",
+    footerNote: "Cancela cuando quieras. Pagos seguros con Polar.",
+    stayOnFree: "Seguir en Gratis",
+    ctaUpgrade: "Elegir {plan}",
+    planDesc: {
+      free: "Para probar ProCV",
+      monthly: "Para búsqueda activa",
+      yearly: "El más popular",
+      unlimited: "Un pago, para siempre",
+    },
     currentPlan: "Plan actual",
     planFree: "Gratis",
     planMonthly: "Mensual",
@@ -331,10 +347,13 @@ export const es: Dictionary = {
     signInRequired: "Inicia sesión para elegir un plan.",
     comingSoon: "Upgrade — pago próximamente.",
     features: {
-      free: "1 CV|3 puntuaciones ATS / mes|Plantilla básica",
-      monthly: "CV ilimitados|ATS + pulido IA|Match de empleo|Exportar PDF",
-      yearly: "Todo lo Mensual|2 meses gratis|Soporte prioritario",
-      unlimited: "Acceso de por vida|Pago único|Todas las funciones Pro|ATS ilimitado",
+      free: "1 CV|3 puntuaciones ATS / mes|Plantilla Classic|Edición básica|Sincronización",
+      monthly:
+        "CV ilimitados|ATS + consejos IA|Pulido IA|Match de empleo|Exportar PDF|Todas las plantillas",
+      yearly:
+        "Todo lo Mensual|Ahorra ~2 meses|Soporte prioritario|Acceso anticipado|Cancela cuando quieras",
+      unlimited:
+        "Acceso de por vida|Pago único|Sin suscripción|ATS e IA ilimitados|Actualizaciones futuras",
     },
   },
   preview: {

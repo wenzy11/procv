@@ -2,11 +2,9 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
-import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 import { PricingPlans } from "@/components/billing/pricing-plans";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
 import { syncProPlanAfterPayment } from "@/lib/billing/checkout-client";
@@ -75,33 +73,23 @@ export function BillingSection() {
   }, [isPro]);
 
   return (
-    <Card glass className="mt-6">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-accent-400" />
-          {t("payment.billingTitle")}
-        </CardTitle>
-        <p className="text-xs text-ink-tertiary">{t("payment.billingHint")}</p>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="flex items-center justify-between gap-4 rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-          <div>
-            <p className="text-sm font-medium">{t("payment.currentPlan")}</p>
-            <p className="text-xs text-ink-tertiary">
-              {syncingPlan && !isPro
-                ? t("common.loading")
-                : t(planLabelKey(current))}
-            </p>
-          </div>
+    <div id="plans" className="mt-10 scroll-mt-24">
+      {syncingPlan && !isPro ? (
+        <p className="mb-4 text-center text-sm text-ink-tertiary">
+          {t("common.loading")} — {t("payment.syncingPlan")}
+        </p>
+      ) : (
+        <p className="mb-6 text-sm text-ink-secondary">
+          {t("payment.currentPlanLabel")}{" "}
+          <span className="font-medium text-ink-primary">
+            {t(planLabelKey(current))}
+          </span>
           {isPro ? (
-            <span className="text-xs font-medium text-state-success">
-              {t("payment.activeBadge")}
-            </span>
+            <span className="ml-2 text-state-success">({t("payment.activeBadge")})</span>
           ) : null}
-        </div>
-
-        <PricingPlans />
-      </CardContent>
-    </Card>
+        </p>
+      )}
+      <PricingPlans compact showHeader />
+    </div>
   );
 }

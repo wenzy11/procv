@@ -11,6 +11,7 @@ import {
   Command,
   FileText,
   LayoutDashboard,
+  Layers,
   LogOut,
   Search,
   Settings,
@@ -222,6 +223,12 @@ function UserMenu() {
           <Link href="/profile" className="flex cursor-pointer items-center gap-2">
             <UserCircle className="h-4 w-4 text-ink-tertiary" />
             {t("nav.profile")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/plans" className="flex cursor-pointer items-center gap-2">
+            <Layers className="h-4 w-4 text-ink-tertiary" />
+            {t("nav.upgradePlan")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

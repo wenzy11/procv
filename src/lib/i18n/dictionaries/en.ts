@@ -59,6 +59,7 @@ export const en = {
     analytics: "Analytics",
     search: "Search…",
     upgrade: "Upgrade to Pro",
+    upgradePlan: "Upgrade plan",
     profile: "Profile",
     preferences: "Preferences",
     language: "Language",
@@ -305,6 +306,21 @@ export const en = {
   payment: {
     billingTitle: "Billing & plans",
     billingHint: "Payments are processed securely by Polar.",
+    sectionEyebrow: "Plans",
+    sectionTitle: "Choose the plan that fits you",
+    sectionSubtitle:
+      "Start free and upgrade when you need more. Every plan’s features are listed below.",
+    currentPlanLabel: "Your current plan:",
+    syncingPlan: "Updating your plan",
+    footerNote: "Cancel anytime. Payments secured by Polar.",
+    stayOnFree: "Stay on Free",
+    ctaUpgrade: "Get {plan}",
+    planDesc: {
+      free: "Perfect to try ProCV",
+      monthly: "For active job seekers",
+      yearly: "Most popular choice",
+      unlimited: "Pay once, keep forever",
+    },
     currentPlan: "Current plan",
     planFree: "Free",
     planMonthly: "Monthly",
@@ -334,10 +350,13 @@ export const en = {
     signInRequired: "Sign in to choose a plan.",
     comingSoon: "Upgrade — payment coming soon.",
     features: {
-      free: "1 résumé|3 ATS scores / month|Basic template",
-      monthly: "Unlimited résumés|ATS + AI polish|Job match|PDF export",
-      yearly: "Everything in Monthly|2 months free|Priority support",
-      unlimited: "Lifetime access|One-time payment|All Pro features|Unlimited ATS",
+      free: "1 résumé|3 ATS scores per month|Classic template|Basic editing|Cloud sync",
+      monthly:
+        "Unlimited résumés|Unlimited ATS + AI tips|AI text polish|Job description match|PDF export|All templates",
+      yearly:
+        "Everything in Monthly|Pay yearly, save ~2 months|Priority support|Early feature access|Cancel anytime",
+      unlimited:
+        "Lifetime access to everything|One-time payment|No subscription|Unlimited ATS & AI|Future updates included",
     },
   },
   preview: {

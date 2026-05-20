@@ -9,6 +9,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  Layers,
   Plus,
   Settings,
   UserCircle,
@@ -106,6 +107,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               </CommandItem>
               <CommandItem icon={UserCircle} onSelect={() => go("/profile")}>
                 {t("nav.profile")}
+              </CommandItem>
+              <CommandItem icon={Layers} onSelect={() => go("/plans")}>
+                {t("nav.upgradePlan")}
               </CommandItem>
               <CommandItem icon={Settings} onSelect={() => go("/settings")}>
                 {t("nav.preferences")}
