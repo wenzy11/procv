@@ -3,6 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 
 import {
   badRequest,
+  requirePaidFeature,
   requireUser,
   serverError,
 } from "@/app/api/_lib/guard";
@@ -26,6 +27,9 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   const guard = await requireUser(req);
   if (!guard.ok) return guard.response;
+
+  const paid = await requirePaidFeature(guard.uid, "pdf_export");
+  if (!paid.ok) return paid.response;
 
   const limited = await checkRateLimit(`pdf:${guard.uid}`);
   if (!limited.ok) return limited.response;

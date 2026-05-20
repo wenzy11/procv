@@ -26,6 +26,8 @@ import { cn } from "@/lib/cn";
 import { useResumeStore } from "@/store/resume-store";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { contactQuickFixPatch } from "@/lib/ats/contact-quick-fix";
+import { useEntitlements } from "@/components/billing/use-entitlements";
+import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { analyzeResume } from "@/lib/scoring";
 import { ATSGauge } from "./ats-gauge";
 import type {
@@ -69,6 +71,8 @@ export function ATSPanel() {
   const resume = useResumeStore((s) => s.resume);
   const setActiveSection = useResumeStore((s) => s.setActiveSection);
   const setAtsScore = useResumeStore((s) => s.setAtsScore);
+  const { canUse, atsRemaining, refreshUsage } = useEntitlements();
+  const { prompt } = useUpgradePrompt();
 
   const [score, setScore] = React.useState<ATSScore | null>(null);
   const [suggestions, setSuggestions] = React.useState<AISuggestion[]>([]);
@@ -79,14 +83,27 @@ export function ATSPanel() {
   const runAnalysis = React.useCallback(async () => {
     if (!resume) return;
     if (empty) return;
+    if (!canUse("unlimited_ats")) {
+      prompt("unlimited_ats");
+      return;
+    }
     setLoading(true);
     try {
       const result = await analyzeResume(resume, locale);
       setScore(result.score);
       setSuggestions(result.suggestions);
       setAtsScore(result.score.total);
+      void refreshUsage();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
+      if (msg === "ATS_LIMIT_REACHED") {
+        prompt("unlimited_ats");
+        return;
+      }
+      if (msg === "PLAN_UPGRADE_REQUIRED") {
+        prompt("unlimited_ats");
+        return;
+      }
       toast.error(
         msg === "EMAIL_NOT_VERIFIED" ? t("errors.emailNotVerified") : t("ats.failed"),
         {
@@ -97,7 +114,7 @@ export function ATSPanel() {
     } finally {
       setLoading(false);
     }
-  }, [resume, empty, locale, t, setAtsScore]);
+  }, [resume, empty, locale, t, setAtsScore, canUse, prompt, refreshUsage]);
 
   // Auto-run once on first meaningful content. Also re-run when the user
   // switches locale so the suggestions appear in the new language without
@@ -127,6 +144,11 @@ export function ATSPanel() {
               {t("ats.title")}
             </CardTitle>
             <p className="text-xs text-ink-tertiary">{t("ats.hint")}</p>
+            {!canUse("unlimited_ats") ? (
+              <p className="text-2xs text-violet-300/90">
+                {t("upgrade.atsRemaining", { count: atsRemaining })}
+              </p>
+            ) : null}
           </div>
           <Button
             variant="secondary"

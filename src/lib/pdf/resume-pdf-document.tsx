@@ -8,7 +8,7 @@ import {
 
 import type { ResumeDocument, ResumeTemplateId } from "@/lib/types";
 import { formatResumeDate } from "@/lib/i18n/dates";
-import { normalizeTemplateId } from "@/lib/templates";
+import { getPdfLayoutFamily, normalizeTemplateId } from "@/lib/templates";
 import type { Locale } from "@/lib/i18n";
 
 const base = {
@@ -422,14 +422,16 @@ function MinimalPdfPage({ resume, locale, labels }: ContentProps) {
 }
 
 export function ResumePdfDocument({ resume, locale, labels }: Props) {
-  const template = normalizeTemplateId(resume.templateId);
+  const templateId = normalizeTemplateId(resume.templateId);
+  const layout = getPdfLayoutFamily(templateId);
+  const template = layout;
   const props = { resume, locale, labels, template };
 
   return (
     <Document>
-      {template === "modern" ? (
+      {layout === "modern" ? (
         <ModernPdfPage {...props} />
-      ) : template === "minimal" ? (
+      ) : layout === "minimal" ? (
         <MinimalPdfPage {...props} />
       ) : (
         <ClassicPdfPage {...props} />

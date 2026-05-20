@@ -36,8 +36,12 @@ async function authedFetch<T>(path: string, payload: unknown): Promise<T> {
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error ?? `Request failed (${res.status})`);
+    const data = (await res.json().catch(() => ({}))) as {
+      error?: string;
+      feature?: string;
+    };
+    const code = data.error ?? `HTTP_${res.status}`;
+    throw new Error(code);
   }
   return (await res.json()) as T;
 }

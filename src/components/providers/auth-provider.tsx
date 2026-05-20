@@ -24,6 +24,7 @@ import { useResumeStore } from "@/store/resume-store";
 interface AuthContextValue {
   user: AppUser | null;
   plan: UserPlan;
+  subscriptionStatus: SubscriptionStatus;
   isPro: boolean;
   /** True until the first onAuthStateChanged callback fires. */
   initializing: boolean;
@@ -131,13 +132,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       user,
       plan,
+      subscriptionStatus,
       isPro,
       initializing,
       configured,
       refreshProfile,
       signOut,
     }),
-    [user, plan, isPro, initializing, configured, refreshProfile, signOut],
+    [user, plan, subscriptionStatus, isPro, initializing, configured, refreshProfile, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

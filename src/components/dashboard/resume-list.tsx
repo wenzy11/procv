@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useEntitlements } from "@/components/billing/use-entitlements";
+import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
 import {
@@ -32,6 +34,8 @@ export function ResumeList() {
   const t = useT();
   const router = useRouter();
   const { user } = useAuth();
+  const { resumeRemaining, refreshUsage } = useEntitlements();
+  const { prompt } = useUpgradePrompt();
 
   const [resumes, setResumes] = React.useState<ResumeDocument[] | null>(null);
   const [creating, setCreating] = React.useState(false);
@@ -48,9 +52,14 @@ export function ResumeList() {
 
   const handleCreate = async () => {
     if (!user) return;
+    if (resumeRemaining <= 0) {
+      prompt("unlimited_resumes");
+      return;
+    }
     setCreating(true);
     try {
       const id = await createResume(user.uid, user.displayName);
+      void refreshUsage();
       router.push(`/editor/${id}`);
     } catch (err) {
       toast.error(t("common.error"), {

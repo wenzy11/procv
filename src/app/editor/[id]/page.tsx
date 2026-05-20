@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
 import { useResumeStore } from "@/store/resume-store";
+import { coerceTemplateForPlan } from "@/lib/templates";
 import { subscribeToResume } from "@/lib/firebase/resumes";
 
 export default function EditorByIdPage() {
@@ -30,7 +31,7 @@ function EditorWorkspace() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const t = useT();
-  const { user } = useAuth();
+  const { user, plan, subscriptionStatus } = useAuth();
   const hydrate = useResumeStore((s) => s.hydrate);
   const replaceResume = useResumeStore((s) => s.replaceResume);
   const reset = useResumeStore((s) => s.reset);
@@ -54,7 +55,13 @@ function EditorWorkspace() {
           return;
         }
         if (firstLoad) {
-          hydrate(user.uid, resume);
+          hydrate(user.uid, {
+            ...resume,
+            templateId: coerceTemplateForPlan(
+              resume.templateId ?? "classic",
+              { plan, subscriptionStatus },
+            ),
+          });
           firstLoad = false;
         } else {
           const state = useResumeStore.getState();

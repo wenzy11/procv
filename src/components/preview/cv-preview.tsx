@@ -21,6 +21,9 @@ import { cn } from "@/lib/cn";
 import { formatResumeDate } from "@/lib/i18n/dates";
 import { downloadResumePdf } from "@/lib/pdf/download-resume-pdf";
 import { normalizeTemplateId } from "@/lib/templates";
+import { getTemplateTheme } from "@/lib/template-themes";
+import { useEntitlements } from "@/components/billing/use-entitlements";
+import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { useResumeStore } from "@/store/resume-store";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { TemplatePicker } from "./template-picker";
@@ -48,6 +51,8 @@ const PROFICIENCY_DOTS: Record<LanguageProficiency, number> = {
 export function CVPreview() {
   const t = useT();
   const { locale } = useI18n();
+  const { prompt } = useUpgradePrompt();
+  const { canUse } = useEntitlements();
   const dirty = useResumeStore((s) => s.dirty);
   const resume = useResumeStore((s) => s.resume);
   const [zoom, setZoom] = React.useState(0.84);
@@ -55,6 +60,10 @@ export function CVPreview() {
 
   const handleExport = async () => {
     if (!resume) return;
+    if (!canUse("pdf_export")) {
+      prompt("pdf_export");
+      return;
+    }
     setExporting(true);
     toast.info(t("preview.exportToast"), {
       description: t("preview.exportToastHint"),
@@ -186,6 +195,8 @@ function ResumeSheet() {
   if (!resume) return null;
   const p = resume.personal;
   const template = normalizeTemplateId(resume.templateId);
+  const theme = getTemplateTheme(template);
+  const layoutMinimal = template === "minimal" || template === "elegant";
   const present = t("preview.present");
   const fmt = (v: string) => formatResumeDate(v, locale, present);
 
@@ -194,8 +205,7 @@ function ResumeSheet() {
       aria-label={t("common.resumePreviewAria")}
       className={cn(
         "paper-sheet relative w-[816px] min-h-[1056px] text-[#1f2937]",
-        template === "modern" && "bg-gradient-to-br from-white to-indigo-50/30",
-        template === "minimal" && "bg-white",
+        theme.sheet,
       )}
       style={{
         // Pair a humanist sans-serif with a soft serif for headings — gives
@@ -216,7 +226,7 @@ function ResumeSheet() {
           {p.fullName || "—"}
         </h1>
         {p.headline ? (
-          <p className="mt-1.5 text-[14.5px] font-medium text-indigo-700">
+          <p className={cn("mt-1.5 text-[14.5px] font-medium", theme.headline)}>
             {p.headline}
           </p>
         ) : null}
@@ -242,7 +252,7 @@ function ResumeSheet() {
       <div
         className={cn(
           "px-12 pb-14",
-          template === "minimal"
+          layoutMinimal
             ? "flex flex-col gap-7"
             : "grid grid-cols-[2fr_1fr] gap-x-10",
         )}
@@ -274,7 +284,7 @@ function ResumeSheet() {
                         </span>
                       ) : null}
                     </div>
-                    <p className="mt-0.5 text-[12.5px] font-medium text-indigo-700">
+                    <p className={cn("mt-0.5 text-[12.5px] font-medium", theme.accent)}>
                       {exp.company}
                       {exp.location ? (
                         <span className="font-normal text-zinc-500">
@@ -295,7 +305,10 @@ function ResumeSheet() {
                             h.trim() && (
                               <li
                                 key={i}
-                                className="relative pl-4 before:absolute before:left-0 before:top-[10px] before:h-1 before:w-1 before:rounded-full before:bg-indigo-500"
+                                className={cn(
+                                  "relative pl-4 before:absolute before:left-0 before:top-[10px] before:h-1 before:w-1 before:rounded-full",
+                                  theme.bullet,
+                                )}
                               >
                                 {h}
                               </li>
@@ -345,22 +358,17 @@ function ResumeSheet() {
         </main>
 
         {/* ----- SIDEBAR ---------------------------------------------------- */}
-        <aside
-          className={cn(
-            "space-y-6",
-            template === "modern" &&
-              "rounded-lg bg-indigo-600/5 p-4 border border-indigo-100",
-            template !== "minimal" && template !== "modern" && "pl-7 border-l border-zinc-100",
-            template === "minimal" && "mt-6 border-t border-zinc-100 pt-6",
-          )}
-        >
+        <aside className={cn("space-y-6", theme.sidebar)}>
           {resume.skills.length > 0 ? (
             <Section title={t("preview.skills")}>
               <div className="flex flex-wrap gap-1.5">
                 {resume.skills.map((s) => (
                   <span
                     key={s.id}
-                    className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11.5px] font-medium text-zinc-700"
+                    className={cn(
+                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[11.5px] font-medium",
+                      theme.skillChip,
+                    )}
                   >
                     {s.name}
                   </span>

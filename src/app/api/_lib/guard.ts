@@ -1,6 +1,10 @@
 import "server-only";
 import { NextResponse } from "next/server";
+import { getEntitlements, type PremiumFeature } from "@/lib/billing/entitlements";
+import { normalizePlan } from "@/lib/billing/plan";
 import { verifyIdToken } from "@/lib/firebase/admin";
+import { getAdminDb } from "@/lib/firebase/admin";
+import type { SubscriptionStatus } from "@/lib/billing/types";
 
 /**
  * Auth guard for API routes.
@@ -55,4 +59,32 @@ export function badRequest(message: string) {
 export function serverError(err: unknown) {
   const message = err instanceof Error ? err.message : "Internal error";
   return NextResponse.json({ error: message }, { status: 500 });
+}
+
+export async function requirePaidFeature(
+  uid: string,
+  feature: PremiumFeature,
+): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
+  const snap = await getAdminDb().collection("users").doc(uid).get();
+  const data = snap.data() ?? {};
+  const plan = normalizePlan(data.plan as string | undefined);
+  const subscriptionStatus =
+    (data.subscriptionStatus as SubscriptionStatus | undefined) ?? "none";
+  const ent = getEntitlements({ plan, subscriptionStatus });
+
+  if (!ent.paid) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: "PLAN_UPGRADE_REQUIRED",
+          feature,
+          message: "This feature requires a paid plan.",
+        },
+        { status: 402 },
+      ),
+    };
+  }
+
+  return { ok: true };
 }

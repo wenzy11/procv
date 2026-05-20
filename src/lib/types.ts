@@ -74,7 +74,17 @@ export interface Education {
 }
 
 /** Visual layout used by the live preview and PDF export. */
-export type ResumeTemplateId = "classic" | "modern" | "minimal";
+export type ResumeTemplateId =
+  | "classic"
+  | "modern"
+  | "minimal"
+  | "executive"
+  | "creative"
+  | "compact"
+  | "elegant"
+  | "bold"
+  | "stripe"
+  | "ats";
 
 export interface ResumeDocument {
   id: ID;

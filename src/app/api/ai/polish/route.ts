@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { getOpenAI, getOpenAIModel } from "@/lib/openai/client";
 import { polishMessages } from "@/lib/openai/prompts";
-import { badRequest, requireUser, serverError } from "@/app/api/_lib/guard";
+import {
+  badRequest,
+  requirePaidFeature,
+  requireUser,
+  serverError,
+} from "@/app/api/_lib/guard";
 import { checkRateLimit } from "@/app/api/_lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -16,6 +21,9 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   const guard = await requireUser(req);
   if (!guard.ok) return guard.response;
+
+  const paid = await requirePaidFeature(guard.uid, "ai_polish");
+  if (!paid.ok) return paid.response;
 
   const limited = await checkRateLimit(`ai:${guard.uid}`);
   if (!limited.ok) return limited.response;

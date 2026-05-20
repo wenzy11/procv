@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { getOpenAI, getOpenAIModel } from "@/lib/openai/client";
 import { analyzeMessages } from "@/lib/openai/prompts";
-import { badRequest, requireUser, serverError } from "@/app/api/_lib/guard";
+import {
+  badRequest,
+  requireUser,
+  serverError,
+} from "@/app/api/_lib/guard";
 import { checkRateLimit } from "@/app/api/_lib/rate-limit";
+import { UsageLimitError, consumeAtsAnalysis } from "@/lib/firebase/usage-admin";
 import type { AISuggestion, ATSScore, ResumeDocument } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -34,6 +39,8 @@ export async function POST(req: Request) {
   const locale = body.locale ?? "en";
 
   try {
+    const usageMeta = await consumeAtsAnalysis(guard.uid);
+
     const completion = await getOpenAI().chat.completions.create({
       model: getOpenAIModel(),
       response_format: { type: "json_object" },
@@ -51,8 +58,14 @@ export async function POST(req: Request) {
     const score = sanitizeScore(parsed.score);
     const suggestions = sanitizeSuggestions(parsed.suggestions);
 
-    return NextResponse.json({ score, suggestions });
+    return NextResponse.json({ score, suggestions, usage: usageMeta });
   } catch (err) {
+    if (err instanceof UsageLimitError) {
+      return NextResponse.json(
+        { error: "ATS_LIMIT_REACHED", message: err.message },
+        { status: 402 },
+      );
+    }
     return serverError(err);
   }
 }

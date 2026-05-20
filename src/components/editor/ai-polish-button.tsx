@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 import { cn } from "@/lib/cn";
+import { useEntitlements } from "@/components/billing/use-entitlements";
+import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { polishText } from "@/lib/scoring";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
 
@@ -30,6 +32,8 @@ export function AIPolishButton({
 }: AIPolishButtonProps) {
   const t = useT();
   const { locale } = useI18n();
+  const { canUse } = useEntitlements();
+  const { prompt } = useUpgradePrompt();
   const [loading, setLoading] = React.useState(false);
 
   const actionLabel = label ?? t("editor.aiPolish");
@@ -39,6 +43,10 @@ export function AIPolishButton({
       toast.warning(t("editor.nothingToPolish"), {
         description: t("editor.nothingToPolishHint"),
       });
+      return;
+    }
+    if (!canUse("ai_polish")) {
+      prompt("ai_polish");
       return;
     }
     try {
@@ -54,6 +62,10 @@ export function AIPolishButton({
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
+      if (msg === "PLAN_UPGRADE_REQUIRED") {
+        prompt("ai_polish");
+        return;
+      }
       toast.error(
         msg === "EMAIL_NOT_VERIFIED" ? t("errors.emailNotVerified") : t("ats.failed"),
         { description: msg === "EMAIL_NOT_VERIFIED" ? undefined : msg || undefined },

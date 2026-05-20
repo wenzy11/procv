@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { AuthGuard } from "@/components/auth/auth-guard";
+import { PlanUsageBanner } from "@/components/billing/plan-usage-banner";
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { ResumeList } from "@/components/dashboard/resume-list";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,9 @@ function DashboardBody() {
   return (
     <div className="mx-auto max-w-[1600px] px-5 py-6">
       <HeroBanner />
+      <div className="mt-4">
+        <PlanUsageBanner />
+      </div>
       <div className="mt-6">
         <StatsGrid />
       </div>

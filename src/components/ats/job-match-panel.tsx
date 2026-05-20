@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useResumeStore } from "@/store/resume-store";
 import { useI18n, useT } from "@/components/providers/i18n-provider";
+import { useEntitlements } from "@/components/billing/use-entitlements";
+import { useUpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { matchJobDescription } from "@/lib/scoring";
 import { cn } from "@/lib/cn";
 import { translateMatchCategory } from "@/lib/i18n/match-category";
@@ -44,15 +46,22 @@ export function JobMatchPanel() {
   const jd = useResumeStore((s) => s.jobDescription);
   const setJD = useResumeStore((s) => s.setJobDescription);
 
+  const { canUse } = useEntitlements();
+  const { prompt } = useUpgradePrompt();
   const [result, setResult] = React.useState<KeywordMatchResult | null>(null);
   const [loading, setLoading] = React.useState(false);
 
   const hasJD = jd.trim().length > 24;
+  const locked = !canUse("job_match");
 
   const runMatch = async () => {
     if (!resume) return;
     if (!hasJD) {
       toast.warning(t("match.paste"));
+      return;
+    }
+    if (locked) {
+      prompt("job_match");
       return;
     }
     setLoading(true);
@@ -68,8 +77,13 @@ export function JobMatchPanel() {
               }),
       });
     } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg === "PLAN_UPGRADE_REQUIRED") {
+        prompt("job_match");
+        return;
+      }
       toast.error(t("ats.failed"), {
-        description: err instanceof Error ? err.message : undefined,
+        description: msg || undefined,
       });
     } finally {
       setLoading(false);
@@ -86,6 +100,9 @@ export function JobMatchPanel() {
               {t("match.title")}
             </CardTitle>
             <p className="text-xs text-ink-tertiary">{t("match.hint")}</p>
+            {locked ? (
+              <p className="text-2xs text-violet-300/90">{t("upgrade.proOnly")}</p>
+            ) : null}
           </div>
           <Badge tone={result ? "accent" : "neutral"} size="sm">
             {result
@@ -118,14 +135,14 @@ export function JobMatchPanel() {
               })}
             </span>
             <Button
-              variant="primary"
+              variant={locked ? "neon" : "primary"}
               size="sm"
               onClick={runMatch}
-              loading={loading}
+              loading={loading && !locked}
               disabled={!resume}
             >
               <FileSearch className="h-3.5 w-3.5" />
-              {t("match.run")}
+              {locked ? t("upgrade.cta") : t("match.run")}
             </Button>
           </div>
         </div>
