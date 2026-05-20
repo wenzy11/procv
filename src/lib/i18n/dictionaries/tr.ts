@@ -302,13 +302,15 @@ export const tr: Dictionary = {
   },
   payment: {
     billingTitle: "Abonelik ve plan",
-    billingHint: "Ödemeler Lemon Squeezy üzerinden güvenle işlenir.",
+    billingHint: "Ödemeler Polar üzerinden güvenle işlenir.",
     currentPlan: "Mevcut plan",
     planFree: "Ücretsiz",
     planPro: "Pro",
     redirecting: "Ödeme sayfasına yönlendiriliyorsun…",
     success: "Teşekkürler! Ödeme sonrası Pro erişim bir dakika içinde açılır.",
     error: "Ödeme başlatılamadı. Tekrar dene veya destekle iletişime geç.",
+    notConfigured:
+      "Ödeme ayarlı değil — Vercel’de Polar env’leri ve son deploy kontrol et.",
     signInRequired: "Pro'ya geçmek için giriş yap.",
     comingSoon: "Pro yükseltme — ödeme yakında.",
   },

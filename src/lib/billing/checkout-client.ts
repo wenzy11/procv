@@ -2,8 +2,11 @@
 
 import { getIdToken } from "@/lib/firebase/auth";
 
-/** Starts Lemon Squeezy checkout; redirects the browser on success. */
-export async function startProCheckout(email?: string | null): Promise<void> {
+/** Starts hosted checkout (Polar / Gumroad / Lemon); redirects on success. */
+export async function startProCheckout(
+  email?: string | null,
+  locale?: string | null,
+): Promise<void> {
   const token = await getIdToken();
   if (!token) {
     throw new Error("NOT_SIGNED_IN");
@@ -15,7 +18,10 @@ export async function startProCheckout(email?: string | null): Promise<void> {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(email ? { email } : {}),
+    body: JSON.stringify({
+      ...(email ? { email } : {}),
+      ...(locale ? { locale } : {}),
+    }),
   });
 
   if (!res.ok) {

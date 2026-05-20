@@ -304,13 +304,15 @@ export const en = {
   },
   payment: {
     billingTitle: "Billing & plan",
-    billingHint: "Payments are processed securely by Lemon Squeezy.",
+    billingHint: "Payments are processed securely by Polar.",
     currentPlan: "Current plan",
     planFree: "Free",
     planPro: "Pro",
     redirecting: "Redirecting to checkout…",
     success: "Thanks! Pro access activates within a minute after payment.",
     error: "Could not start checkout. Try again or contact support.",
+    notConfigured:
+      "Billing is not configured — check Polar env vars on Vercel and redeploy.",
     signInRequired: "Sign in to upgrade to Pro.",
     comingSoon: "Pro upgrade — payment coming soon.",
   },

@@ -315,6 +315,7 @@ export const fr: Dictionary = {
     redirecting: "Redirection vers le paiement…",
     success: "Merci ! L'accès Pro s'active en une minute après paiement.",
     error: "Impossible de démarrer le paiement.",
+    notConfigured: "Paiement non configuré — vérifiez Polar sur Vercel et redeploy.",
     signInRequired: "Connectez-vous pour passer à Pro.",
     comingSoon: "Upgrade Pro — paiement bientôt.",
   },

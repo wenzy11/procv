@@ -314,6 +314,7 @@ export const de: Dictionary = {
     redirecting: "Weiterleitung zur Kasse…",
     success: "Danke! Pro-Zugang wird innerhalb einer Minute aktiviert.",
     error: "Checkout konnte nicht gestartet werden.",
+    notConfigured: "Zahlung nicht konfiguriert — Polar auf Vercel prüfen und redeploy.",
     signInRequired: "Melde dich an, um Pro zu nutzen.",
     comingSoon: "Pro-Upgrade — Zahlung kommt bald.",
   },

@@ -309,6 +309,7 @@ export const es: Dictionary = {
     redirecting: "Redirigiendo al pago…",
     success: "¡Gracias! El acceso Pro se activa en un minuto tras el pago.",
     error: "No se pudo iniciar el pago. Inténtalo de nuevo.",
+    notConfigured: "Pago no configurado — revisa Polar en Vercel y redeploy.",
     signInRequired: "Inicia sesión para pasar a Pro.",
     comingSoon: "Upgrade Pro — pago próximamente.",
   },

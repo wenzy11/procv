@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { useAuth } from "@/components/providers/auth-provider";
-import { useT } from "@/components/providers/i18n-provider";
+import { useI18n, useT } from "@/components/providers/i18n-provider";
 import { startProCheckout } from "@/lib/billing/checkout-client";
 
 export function UpgradeButton({
@@ -17,6 +17,7 @@ export function UpgradeButton({
   ...props
 }: ButtonProps & { showIcon?: boolean }) {
   const t = useT();
+  const { locale } = useI18n();
   const { user, isPro, configured } = useAuth();
   const [loading, setLoading] = React.useState(false);
 
@@ -34,10 +35,18 @@ export function UpgradeButton({
     setLoading(true);
     try {
       toast.info(t("payment.redirecting"));
-      await startProCheckout(user.email);
+      await startProCheckout(user.email, locale);
     } catch (err) {
       const message = err instanceof Error ? err.message : t("payment.error");
-      toast.error(message);
+      const is503 =
+        err instanceof Error && message.includes("not configured");
+      toast.error(is503 ? t("payment.notConfigured") : message, {
+        description: is503
+          ? undefined
+          : message.length > 80
+            ? message.slice(0, 120)
+            : undefined,
+      });
     } finally {
       setLoading(false);
     }
