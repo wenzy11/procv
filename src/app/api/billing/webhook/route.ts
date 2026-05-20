@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       case "subscription_payment_success": {
         const active = subStatus === "active" || subStatus === "on_trial";
         await updateUserBilling(uid, {
-          plan: active ? "pro" : "free",
+          plan: active ? "monthly" : "free",
           subscriptionStatus: subStatus,
           lemonSubscriptionId:
             payload.data?.id != null ? String(payload.data.id) : undefined,
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       case "order_created": {
         if (attrs.status === "paid" || attrs.refunded === false) {
           await updateUserBilling(uid, {
-            plan: "pro",
+            plan: "monthly",
             subscriptionStatus: "active",
           });
         }

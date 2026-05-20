@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       });
     } else {
       await updateUserBilling(uid, {
-        plan: "pro",
+        plan: "monthly",
         subscriptionStatus: "active",
         lemonSubscriptionId: ping.subscription_id ?? ping.sale_id ?? null,
       });

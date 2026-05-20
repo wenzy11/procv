@@ -3,7 +3,21 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { getAdminDb } from "./admin";
+import { normalizePlan } from "@/lib/billing/plan";
 import type { SubscriptionStatus, UserPlan } from "@/lib/billing/types";
+
+export async function getUserBilling(uid: string): Promise<{
+  plan: UserPlan;
+  subscriptionStatus: SubscriptionStatus;
+}> {
+  const snap = await getAdminDb().collection("users").doc(uid).get();
+  const data = snap.data() ?? {};
+  return {
+    plan: normalizePlan(data.plan as string | undefined),
+    subscriptionStatus:
+      (data.subscriptionStatus as SubscriptionStatus | undefined) ?? "none",
+  };
+}
 
 export async function updateUserBilling(
   uid: string,

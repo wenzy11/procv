@@ -1,9 +1,12 @@
 "use client";
 
 import { getIdToken } from "@/lib/firebase/auth";
+import { hasPaidAccess, normalizePlan } from "@/lib/billing/plan";
+import type { BillingTier } from "@/lib/billing/types";
 
-/** Starts hosted checkout (Polar / Gumroad / Lemon); redirects on success. */
+/** Starts hosted checkout for a paid tier. */
 export async function startProCheckout(
+  tier: BillingTier,
   email?: string | null,
   locale?: string | null,
 ): Promise<void> {
@@ -19,6 +22,7 @@ export async function startProCheckout(
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
+      tier,
       ...(email ? { email } : {}),
       ...(locale ? { locale } : {}),
     }),
@@ -34,7 +38,20 @@ export async function startProCheckout(
   window.location.href = url;
 }
 
-/** After ?billing=success — ask Polar API and write plan to Firestore. */
+export type BillingConfig = {
+  polar: boolean;
+  tiers: BillingTier[];
+};
+
+export async function fetchBillingConfig(): Promise<BillingConfig> {
+  const res = await fetch("/api/billing/config", { cache: "no-store" });
+  if (!res.ok) {
+    return { polar: false, tiers: [] };
+  }
+  return res.json() as Promise<BillingConfig>;
+}
+
+/** After ?billing=success — sync plan from Polar. */
 export async function syncProPlanAfterPayment(): Promise<boolean> {
   const token = await getIdToken();
   if (!token) return false;
@@ -46,5 +63,6 @@ export async function syncProPlanAfterPayment(): Promise<boolean> {
 
   if (!res.ok) return false;
   const data = (await res.json()) as { plan?: string };
-  return data.plan === "pro";
+  const plan = normalizePlan(data.plan);
+  return hasPaidAccess({ plan, subscriptionStatus: "active" });
 }

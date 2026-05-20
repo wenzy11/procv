@@ -4,17 +4,15 @@ import { validateEvent, WebhookVerificationError } from "@polar-sh/sdk/webhooks"
 import {
   extractFirebaseUidFromPolarEvent,
   polarSubscriptionIsActive,
+  resolvePlanFromPolarEventData,
   type PolarWebhookEnvelope,
 } from "@/lib/billing/polar.server";
-import { updateUserBilling } from "@/lib/firebase/billing-admin";
+import { getUserBilling, updateUserBilling } from "@/lib/firebase/billing-admin";
 import { findUserIdByEmail } from "@/lib/firebase/user-lookup-admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Polar webhooks (Standard Webhooks). Configure in Polar → Settings → Webhooks.
- */
 export async function POST(req: Request) {
   const secret = process.env.POLAR_WEBHOOK_SECRET;
   if (!secret) {
@@ -44,6 +42,7 @@ export async function POST(req: Request) {
   const nestedSubscription = (data.subscription as
     | Record<string, unknown>
     | undefined) ?? { id: data.subscription_id };
+  const resolvedPlan = resolvePlanFromPolarEventData(data);
 
   let uid = extractFirebaseUidFromPolarEvent(event);
   if (!uid) {
@@ -75,7 +74,7 @@ export async function POST(req: Request) {
       (type === "order.updated" && orderStatus === "paid")
     ) {
       await updateUserBilling(uid, {
-        plan: "pro",
+        plan: resolvedPlan,
         subscriptionStatus: "active",
         lemonSubscriptionId:
           (nestedSubscription.id as string | undefined) ??
@@ -89,20 +88,30 @@ export async function POST(req: Request) {
       type === "subscription.canceled" ||
       type === "order.refunded"
     ) {
-      const stillActive =
-        type === "subscription.canceled" && polarSubscriptionIsActive(data);
-      await updateUserBilling(uid, {
-        plan: stillActive ? "pro" : "free",
-        subscriptionStatus: stillActive ? "active" : "cancelled",
-      });
-      applied = true;
+      const current = await getUserBilling(uid);
+      if (current.plan === "unlimited") {
+        applied = true;
+      } else {
+        const stillActive =
+          type === "subscription.canceled" && polarSubscriptionIsActive(data);
+        await updateUserBilling(uid, {
+          plan: stillActive ? resolvedPlan : "free",
+          subscriptionStatus: stillActive ? "active" : "cancelled",
+        });
+        applied = true;
+      }
     } else if (type === "subscription.updated") {
-      const active = polarSubscriptionIsActive(data);
-      await updateUserBilling(uid, {
-        plan: active ? "pro" : "free",
-        subscriptionStatus: active ? "active" : "cancelled",
-      });
-      applied = true;
+      const current = await getUserBilling(uid);
+      if (current.plan === "unlimited") {
+        applied = true;
+      } else {
+        const active = polarSubscriptionIsActive(data);
+        await updateUserBilling(uid, {
+          plan: active ? resolvedPlan : "free",
+          subscriptionStatus: active ? "active" : "cancelled",
+        });
+        applied = true;
+      }
     } else {
       console.info("[polar webhook] unhandled event", type, uid);
     }
@@ -111,5 +120,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, type, uid, applied }, { status: 202 });
+  return NextResponse.json(
+    { ok: true, type, uid, applied, plan: applied ? resolvedPlan : undefined },
+    { status: 202 },
+  );
 }

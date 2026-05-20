@@ -1,5 +1,14 @@
 import "server-only";
 
+import {
+  extractProductIdFromPolarData,
+  getConfiguredBillingTiers,
+  getPolarProductIdForTier,
+  planFromPolarProductId,
+} from "./polar-products";
+import { normalizePlan } from "./plan";
+import type { BillingTier, UserPlan } from "./types";
+
 const PRODUCTION_API = "https://api.polar.sh/v1";
 const SANDBOX_API = "https://sandbox-api.polar.sh/v1";
 
@@ -10,7 +19,7 @@ export function isPolarSandbox(): boolean {
 export function isPolarConfigured(): boolean {
   return !!(
     process.env.POLAR_ACCESS_TOKEN?.trim() &&
-    process.env.POLAR_PRODUCT_ID?.trim()
+    getConfiguredBillingTiers().length > 0
   );
 }
 
@@ -27,14 +36,15 @@ function toPolarLocale(locale?: string | null): string {
 
 export async function createPolarCheckout(options: {
   userId: string;
+  tier: BillingTier;
   email?: string | null;
   successUrl: string;
   locale?: string | null;
 }): Promise<string> {
   const token = process.env.POLAR_ACCESS_TOKEN;
-  const productId = process.env.POLAR_PRODUCT_ID;
+  const productId = getPolarProductIdForTier(options.tier);
   if (!token || !productId) {
-    throw new Error("Polar is not configured");
+    throw new Error(`Polar product not configured for tier: ${options.tier}`);
   }
 
   const res = await fetch(`${getApiBase()}/checkouts/`, {
@@ -116,19 +126,21 @@ export function extractFirebaseUidFromPolarEvent(
   return null;
 }
 
-/** Pull active subscription from Polar API (webhook bypass for checkout success). */
-export async function syncPolarSubscriptionForUser(
-  userId: string,
-): Promise<{ active: boolean; subscriptionId: string | null }> {
-  const token = process.env.POLAR_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error("Polar is not configured");
-  }
+type PolarSubscriptionRow = {
+  id?: string;
+  status?: string;
+  product_id?: string;
+  product?: { id?: string };
+};
 
-  const url = new URL(`${getApiBase()}/subscriptions/`);
-  url.searchParams.set("external_customer_id", userId);
-  url.searchParams.set("active", "true");
-  url.searchParams.set("limit", "1");
+async function polarFetch(path: string, params: Record<string, string>) {
+  const token = process.env.POLAR_ACCESS_TOKEN;
+  if (!token) throw new Error("Polar is not configured");
+
+  const url = new URL(`${getApiBase()}${path}`);
+  for (const [k, v] of Object.entries(params)) {
+    url.searchParams.set(k, v);
+  }
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
@@ -140,23 +152,95 @@ export async function syncPolarSubscriptionForUser(
     const sandboxHint = isPolarSandbox()
       ? ""
       : " (POLAR_SANDBOX=true ve sandbox token kullanıyor musun?)";
-    throw new Error(`Polar subscriptions: ${errText}${sandboxHint}`);
+    throw new Error(`Polar ${path}: ${errText}${sandboxHint}`);
   }
 
-  const json = (await res.json()) as {
-    items?: Array<{ id?: string; status?: string }>;
-  };
-  const sub = json.items?.[0];
-  const status = String(sub?.status ?? "").toLowerCase();
-  const active =
-    !!sub && (status === "active" || status === "trialing" || status === "");
+  return res.json() as Promise<{ items?: PolarSubscriptionRow[] }>;
+}
+
+function subscriptionPlan(sub: PolarSubscriptionRow): UserPlan | null {
+  const productId =
+    sub.product_id ?? sub.product?.id ?? null;
+  if (!productId) return null;
+  return planFromPolarProductId(productId);
+}
+
+function subscriptionActive(sub: PolarSubscriptionRow): boolean {
+  const status = String(sub.status ?? "").toLowerCase();
+  return status === "active" || status === "trialing" || status === "";
+}
+
+/** Ödeme sonrası Polar’dan plan çek (webhook yedek). */
+export async function syncPolarPlanForUser(userId: string): Promise<{
+  plan: UserPlan;
+  subscriptionId: string | null;
+}> {
+  const unlimitedId = getPolarProductIdForTier("unlimited");
+  if (unlimitedId) {
+    const orders = await polarFetch("/orders/", {
+      external_customer_id: userId,
+      limit: "20",
+    });
+    for (const order of orders.items ?? []) {
+      const o = order as Record<string, unknown>;
+      const productId = extractProductIdFromPolarData(o);
+      if (productId && planFromPolarProductId(productId) === "unlimited") {
+        const paid =
+          String(o.status ?? "").toLowerCase() === "paid" ||
+          o.paid === true;
+        if (paid) {
+          return { plan: "unlimited", subscriptionId: null };
+        }
+      }
+    }
+  }
+
+  const subs = await polarFetch("/subscriptions/", {
+    external_customer_id: userId,
+    active: "true",
+    limit: "10",
+  });
+
+  let best: { plan: UserPlan; subscriptionId: string | null } | null = null;
+  for (const sub of subs.items ?? []) {
+    if (!subscriptionActive(sub)) continue;
+    const plan = subscriptionPlan(sub);
+    if (!plan || plan === "unlimited") continue;
+    const row = { plan, subscriptionId: sub.id ?? null };
+    if (
+      !best ||
+      (plan === "yearly" && best.plan === "monthly")
+    ) {
+      best = row;
+    }
+  }
+
+  if (best) return best;
+  return { plan: "free", subscriptionId: null };
+}
+
+/** @deprecated */
+export async function syncPolarSubscriptionForUser(userId: string) {
+  const { plan, subscriptionId } = await syncPolarPlanForUser(userId);
   return {
-    active,
-    subscriptionId: sub?.id ?? null,
+    active: plan !== "free",
+    subscriptionId,
+    plan: normalizePlan(plan),
   };
 }
 
 export function polarSubscriptionIsActive(data: Record<string, unknown>): boolean {
   const status = String(data.status ?? "").toLowerCase();
   return status === "active" || status === "trialing";
+}
+
+export function resolvePlanFromPolarEventData(
+  data: Record<string, unknown>,
+): UserPlan {
+  const productId = extractProductIdFromPolarData(data);
+  if (productId) {
+    const mapped = planFromPolarProductId(productId);
+    if (mapped) return mapped;
+  }
+  return "monthly";
 }

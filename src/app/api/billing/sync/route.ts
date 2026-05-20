@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { requireUser, serverError } from "@/app/api/_lib/guard";
+import { hasPaidAccess, normalizePlan } from "@/lib/billing/plan";
 import {
   isPolarConfigured,
-  syncPolarSubscriptionForUser,
+  syncPolarPlanForUser,
 } from "@/lib/billing/polar.server";
 import { updateUserBilling } from "@/lib/firebase/billing-admin";
 
@@ -13,7 +14,6 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/billing/sync
  * After checkout success: query Polar API and mirror plan to Firestore.
- * Does not depend on webhooks.
  */
 export async function POST(req: Request) {
   const guard = await requireUser(req, { allowUnverifiedEmail: true });
@@ -27,20 +27,20 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { active, subscriptionId } = await syncPolarSubscriptionForUser(
-      guard.uid,
-    );
+    const { plan, subscriptionId } = await syncPolarPlanForUser(guard.uid);
+    const normalized = normalizePlan(plan);
 
-    if (active) {
+    if (hasPaidAccess({ plan: normalized, subscriptionStatus: "active" })) {
       await updateUserBilling(guard.uid, {
-        plan: "pro",
-        subscriptionStatus: "active",
+        plan: normalized,
+        subscriptionStatus:
+          normalized === "unlimited" ? "active" : "active",
         lemonSubscriptionId: subscriptionId,
       });
-      return NextResponse.json({ ok: true, plan: "pro" as const });
+      return NextResponse.json({ ok: true, plan: normalized });
     }
 
-    return NextResponse.json({ ok: true, plan: "free" as const, active: false });
+    return NextResponse.json({ ok: true, plan: "free" as const });
   } catch (err) {
     return serverError(err);
   }

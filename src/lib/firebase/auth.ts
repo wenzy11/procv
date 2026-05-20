@@ -16,6 +16,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 
+import { normalizePlan } from "@/lib/billing/plan";
 import type { SubscriptionStatus, UserPlan } from "@/lib/billing/types";
 
 import { getFirebaseAuth, getFirebaseDb } from "./client";
@@ -75,7 +76,7 @@ export async function fetchUserProfile(uid: string): Promise<UserProfile | null>
     email: data.email ?? null,
     displayName: data.displayName ?? null,
     locale: data.locale ?? "en",
-    plan: data.plan === "pro" ? "pro" : "free",
+    plan: normalizePlan(data.plan as string | undefined),
     subscriptionStatus: data.subscriptionStatus ?? "none",
     createdAt: data.createdAt?.toMillis?.() ?? 0,
     updatedAt: data.updatedAt?.toMillis?.() ?? 0,

@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { requireUser, serverError } from "@/app/api/_lib/guard";
-import { updateUserBilling } from "@/lib/firebase/billing-admin";
+import { hasPaidAccess } from "@/lib/billing/plan";
+import { parseBillingTier } from "@/lib/billing/tier";
+import type { BillingTier } from "@/lib/billing/types";
+import { getUserBilling, updateUserBilling } from "@/lib/firebase/billing-admin";
 import {
   createPolarCheckout,
   isPolarConfigured,
+  syncPolarPlanForUser,
 } from "@/lib/billing/polar.server";
 import {
   buildGumroadCheckoutUrl,
@@ -21,7 +25,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * POST /api/billing/checkout
- * Returns { url } — Gumroad (preferred) or Lemon Squeezy checkout.
+ * Body: { tier?: "monthly" | "yearly" | "unlimited"; email?; locale? }
  */
 export async function POST(req: Request) {
   const guard = await requireUser(req, { allowUnverifiedEmail: true });
@@ -36,10 +40,16 @@ export async function POST(req: Request) {
 
   let email: string | null = null;
   let locale: string | null = null;
+  let tier: BillingTier = "monthly";
   try {
-    const body = (await req.json()) as { email?: string; locale?: string };
+    const body = (await req.json()) as {
+      email?: string;
+      locale?: string;
+      tier?: string;
+    };
     email = body.email ?? null;
     locale = body.locale ?? null;
+    tier = parseBillingTier(body.tier) ?? "monthly";
   } catch {
     // optional body
   }
@@ -49,23 +59,36 @@ export async function POST(req: Request) {
       try {
         const url = await createPolarCheckout({
           userId: guard.uid,
+          tier,
           email,
           successUrl: redirectUrl,
           locale,
         });
-        return NextResponse.json({ url });
+        return NextResponse.json({ url, tier });
       } catch (err) {
         const message = err instanceof Error ? err.message : "";
         const alreadySubscribed =
           /already.*subscrib/i.test(message) ||
           /already.*active/i.test(message);
         if (alreadySubscribed) {
-          // If Polar says user is already subscribed, keep local plan in sync.
-          await updateUserBilling(guard.uid, {
-            plan: "pro",
-            subscriptionStatus: "active",
-          });
-          return NextResponse.json({ url: redirectUrl });
+          const synced = await syncPolarPlanForUser(guard.uid);
+          if (synced.plan !== "free") {
+            await updateUserBilling(guard.uid, {
+              plan: synced.plan,
+              subscriptionStatus: "active",
+              lemonSubscriptionId: synced.subscriptionId,
+            });
+          } else {
+            const current = await getUserBilling(guard.uid);
+            if (hasPaidAccess(current)) {
+              return NextResponse.json({ url: redirectUrl, tier: current.plan });
+            }
+            await updateUserBilling(guard.uid, {
+              plan: "monthly",
+              subscriptionStatus: "active",
+            });
+          }
+          return NextResponse.json({ url: redirectUrl, tier });
         }
         throw err;
       }
