@@ -39,7 +39,7 @@ Uygulama Türkçe; ürün metnini TR + kısa EN yazabilirsin (müşteriler globa
 
 | Alan | Değer |
 |------|--------|
-| URL | `https://procv-rho.vercel.app/api/billing/polar/webhook` |
+| URL | `https://SENIN-VERCEL-URL.vercel.app/api/billing/polar/webhook` |
 | Format | Raw |
 | Secret | Üret ve kaydet → `POLAR_WEBHOOK_SECRET` |
 
@@ -54,7 +54,7 @@ POLAR_ACCESS_TOKEN=polar_oat_...
 POLAR_PRODUCT_ID=uuid-urun-id
 POLAR_WEBHOOK_SECRET=whsec_...
 POLAR_SANDBOX=true
-NEXT_PUBLIC_APP_URL=https://procv-rho.vercel.app
+NEXT_PUBLIC_APP_URL=https://SENIN-VERCEL-URL.vercel.app
 ```
 
 Canlıya geçince: `POLAR_SANDBOX=false` ve **production** token.

@@ -33,3 +33,18 @@ export async function startProCheckout(
   if (!url) throw new Error("No checkout URL");
   window.location.href = url;
 }
+
+/** After ?billing=success — ask Polar API and write plan to Firestore. */
+export async function syncProPlanAfterPayment(): Promise<boolean> {
+  const token = await getIdToken();
+  if (!token) return false;
+
+  const res = await fetch("/api/billing/sync", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!res.ok) return false;
+  const data = (await res.json()) as { plan?: string };
+  return data.plan === "pro";
+}

@@ -6,6 +6,7 @@ import { CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
 import { UpgradeButton } from "@/components/billing/upgrade-button";
+import { syncProPlanAfterPayment } from "@/lib/billing/checkout-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useT } from "@/components/providers/i18n-provider";
@@ -23,7 +24,10 @@ export function BillingSection() {
     handled.current = true;
     toast.success(t("payment.success"));
     setSyncingPlan(true);
-    void refreshProfile();
+    void (async () => {
+      await syncProPlanAfterPayment();
+      await refreshProfile();
+    })();
   }, [searchParams, refreshProfile, t]);
 
   React.useEffect(() => {

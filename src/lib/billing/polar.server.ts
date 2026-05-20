@@ -78,20 +78,82 @@ export interface PolarWebhookEnvelope {
   data?: Record<string, unknown>;
 }
 
+function readUid(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 export function extractFirebaseUidFromPolarEvent(
   event: PolarWebhookEnvelope,
 ): string | null {
   const data = event.data;
   if (!data) return null;
 
-  const direct =
-    data.external_customer_id ??
-    data.externalCustomerId ??
-    (data.customer as Record<string, unknown> | undefined)?.external_id ??
-    (data.customer as Record<string, unknown> | undefined)?.externalId;
+  const customer = data.customer as Record<string, unknown> | undefined;
+  const metadata = data.metadata as Record<string, unknown> | undefined;
+  const meta = data.meta as Record<string, unknown> | undefined;
 
-  if (typeof direct === "string" && direct.trim()) return direct.trim();
+  const candidates = [
+    data.external_customer_id,
+    data.externalCustomerId,
+    customer?.external_customer_id,
+    customer?.externalCustomerId,
+    customer?.external_id,
+    customer?.externalId,
+    metadata?.user_id,
+    metadata?.userId,
+    metadata?.firebase_uid,
+    meta?.user_id,
+    meta?.userId,
+  ];
+
+  for (const value of candidates) {
+    const uid = readUid(value);
+    if (uid) return uid;
+  }
+
   return null;
+}
+
+/** Pull active subscription from Polar API (webhook bypass for checkout success). */
+export async function syncPolarSubscriptionForUser(
+  userId: string,
+): Promise<{ active: boolean; subscriptionId: string | null }> {
+  const token = process.env.POLAR_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error("Polar is not configured");
+  }
+
+  const url = new URL(`${getApiBase()}/subscriptions/`);
+  url.searchParams.set("external_customer_id", userId);
+  url.searchParams.set("active", "true");
+  url.searchParams.set("limit", "1");
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    const sandboxHint = isPolarSandbox()
+      ? ""
+      : " (POLAR_SANDBOX=true ve sandbox token kullanıyor musun?)";
+    throw new Error(`Polar subscriptions: ${errText}${sandboxHint}`);
+  }
+
+  const json = (await res.json()) as {
+    items?: Array<{ id?: string; status?: string }>;
+  };
+  const sub = json.items?.[0];
+  const status = String(sub?.status ?? "").toLowerCase();
+  const active =
+    !!sub && (status === "active" || status === "trialing" || status === "");
+  return {
+    active,
+    subscriptionId: sub?.id ?? null,
+  };
 }
 
 export function polarSubscriptionIsActive(data: Record<string, unknown>): boolean {
